@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<!-- ROOTIS V9 -->
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rootis v9 | Agenda Pessoal</title>
+<link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+<section class="auth-shell" id="authShell" aria-label="Acesso ao Rootis">
+  <div class="auth-tech-grid" aria-hidden="true"></div>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-logo">R</div>
+      <div><strong>Rootis</strong><small>Agenda odontológica inteligente</small></div>
+    </div>
+
+    <div class="auth-view active" id="authLoginView">
+      <span class="auth-kicker">ACESSO SEGURO</span>
+      <h1>Bem-vindo ao Rootis</h1>
+      <p class="auth-intro">Entre para acessar sua agenda, pacientes e recebimentos.</p>
+      <form id="loginForm" class="auth-form">
+        <label>E-mail<input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="seu@email.com" required></label>
+        <label>Senha<input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" required></label>
+        <button class="auth-text-button auth-forgot-link" id="openRecovery" type="button">Esqueci minha senha</button>
+        <button class="btn btn-primary auth-main-button" type="submit">Entrar</button>
+      </form>
+      <div class="auth-switch">Não tem uma conta? <button class="auth-text-button" id="openRegister" type="button">Criar conta</button></div>
+      <button class="auth-demo-button" id="fillDemoDentist" type="button">Usar acesso de demonstração do dentista</button>
+    </div>
+
+    <div class="auth-view" id="authRegisterView">
+      <span class="auth-kicker">NOVO DENTISTA</span>
+      <h1>Criar sua conta</h1>
+      <p class="auth-intro">Cadastre seus dados profissionais e confirme sua identidade para começar.</p>
+      <form id="registerForm" class="auth-form auth-form-grid">
+        <label class="auth-full">Nome profissional<input name="name" placeholder="Ex.: Dra. Ana Souza" required></label>
+        <label>E-mail<input name="email" type="email" placeholder="dentista@exemplo.com" required></label>
+        <label>WhatsApp / celular<input name="phone" inputmode="numeric" maxlength="11" pattern="\d{11}" placeholder="11999999999" required></label>
+        <label>CRO<input name="cro" placeholder="CRO-SP 12345"></label>
+        <label>Especialidade<input name="specialty" placeholder="Ex.: Endodontia"></label>
+        <label class="auth-full">Clínica / consultório<input name="clinic" placeholder="Nome da clínica"></label>
+        <label>Senha<input name="password" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" required></label>
+        <label>Confirmar senha<input name="passwordConfirm" type="password" minlength="6" placeholder="Digite novamente" required></label>
+        <fieldset class="auth-channel-fieldset auth-full">
+          <legend>Receber código de ativação por</legend>
+          <div class="auth-channel-grid">
+            <label class="auth-channel-option"><input type="radio" name="channel" value="email" checked><span><b>E-mail</b><small>Código na sua caixa de entrada</small></span></label>
+            <label class="auth-channel-option"><input type="radio" name="channel" value="whatsapp"><span><b>WhatsApp</b><small>No celular informado</small></span></label>
+            <label class="auth-channel-option"><input type="radio" name="channel" value="sms"><span><b>SMS</b><small>Mensagem de texto</small></span></label>
+          </div>
+        </fieldset>
+        <button class="btn btn-primary auth-main-button auth-full" id="sendRegisterCode" type="button">Enviar código de ativação</button>
+        <div class="auth-code-step auth-full" id="registerCodeStep" hidden>
+          <div class="auth-delivery-status" id="registerDeliveryStatus"></div>
+          <label>Código de 6 dígitos<input id="registerCodeInput" inputmode="numeric" maxlength="6" placeholder="000000"></label>
+          <button class="btn btn-primary" id="confirmRegister" type="button">Confirmar e criar conta</button>
+        </div>
+      </form>
+      <div class="auth-switch">Já tem uma conta? <button class="auth-text-button" data-auth-login type="button">Entrar</button></div>
+    </div>
+
+    <div class="auth-view" id="authRecoveryView">
+      <span class="auth-kicker">RECUPERAÇÃO</span>
+      <h1>Recuperar acesso</h1>
+      <p class="auth-intro">Localize sua conta e receba um código por e-mail ou SMS para definir uma nova senha.</p>
+      <form id="recoveryForm" class="auth-form">
+        <label>E-mail ou celular<input id="recoveryIdentifier" placeholder="seu@email.com ou 11999999999" required></label>
+        <label>Receber código por<select id="recoveryChannel"><option value="email">E-mail</option><option value="sms">SMS</option></select></label>
+        <button class="btn btn-primary auth-main-button" id="sendRecoveryCode" type="button">Enviar código de recuperação</button>
+        <div class="auth-code-step" id="recoveryCodeStep" hidden>
+          <div class="auth-delivery-status" id="recoveryDeliveryStatus"></div>
+          <label>Código de 6 dígitos<input id="recoveryCodeInput" inputmode="numeric" maxlength="6" placeholder="000000"></label>
+          <label>Nova senha<input id="recoveryNewPassword" type="password" minlength="6" placeholder="Nova senha"></label>
+          <label>Confirmar nova senha<input id="recoveryNewPasswordConfirm" type="password" minlength="6" placeholder="Digite novamente"></label>
+          <button class="btn btn-primary" id="confirmRecovery" type="button">Atualizar senha</button>
+        </div>
+      </form>
+      <div class="auth-switch"><button class="auth-text-button" data-auth-login type="button">← Voltar para entrar</button></div>
+    </div>
+
+    <div class="auth-local-note">
+      <strong>Versão local v9.</strong> O fluxo de código está pronto para integração. Enquanto não houver servidor, o código de teste aparece na própria tela.
+    </div>
+    <div class="auth-footer">www.rootins.com.br</div>
+  </div>
+</section>
+<div class="app">
+<aside>
+<div class="brand"><div class="logo">R</div><div><strong>Rootis</strong><small>Agenda pessoal</small></div></div>
+<nav>
+<button class="nav" data-page="perfil">Meu perfil</button>
+<button class="nav active" data-page="dashboard">Dashboard</button>
+<button class="nav" data-page="confirmacoes">Confirmações <span class="nav-count" id="sidebarPendingCount">0</span></button>
+<button class="nav" data-page="agenda">Agenda</button>
+<button class="nav" data-page="pacientes">Pacientes</button>
+<button class="nav owner-only" data-page="administrador">Administrador</button>
+</nav>
+<div class="profile" data-go="perfil"><div class="profile-avatar" id="sidebarDentistInitials">CM</div><div><strong id="sidebarDentistName">Dra. Carla Matos</strong><small>Perfil do dentista</small></div></div>
+</aside>
+<main>
+<header class="topbar">
+<button aria-label="Voltar para a tela anterior" class="mobile-back" id="mobileBack" type="button">←</button>
+<div class="topbar-title-wrap"><h1 id="title">Dashboard</h1><p id="subtitle">Sua agenda de forma simples.</p></div>
+<div class="actions"><button class="btn btn-ghost" id="openPayment">Solicitar pagamento</button><button class="btn btn-primary" id="newAppt">+ Agendamento</button></div>
+</header>
+<div class="content">
+
+<section class="page owner-only-page" id="administrador">
+<div class="central-hero owner-admin-hero">
+<div><span class="eyebrow">ROOTIS · ADMINISTRAÇÃO DA PLATAFORMA</span><h2>Administrador do site</h2><p>Área exclusiva do proprietário da plataforma para cadastrar, visualizar e gerenciar os dentistas do Rootis.</p></div>
+<div class="central-count"><span>Dentistas cadastrados</span><strong id="dentistCount">1</strong></div>
+</div>
+<div class="admin-platform-stats">
+  <div class="card admin-platform-stat"><span>Associados</span><strong id="adminAssociatedDentists">0</strong><small>dentistas cadastrados</small></div>
+  <div class="card admin-platform-stat"><span>Pacientes na plataforma</span><strong id="adminPatientsTotal">0</strong><small>somados entre os associados</small></div>
+  <div class="card admin-platform-stat"><span>Faturamento dos associados</span><strong id="adminRevenueTotal">R$ 0,00</strong><small>total recebido registrado</small></div>
+</div>
+<div class="owner-admin-grid">
+<div class="card owner-summary-card">
+<div class="panel-head"><div><h3>Controle da plataforma</h3><p>Área exclusiva do proprietário do Rootis. A identificação de proprietário aparece somente aqui.</p></div><span class="owner-badge">PROPRIETÁRIO</span></div>
+<div class="owner-summary-line"><span>Conta proprietária</span><strong>Dr. Wandersson Saraiva</strong></div>
+<div class="owner-summary-line"><span>Agenda selecionada</span><strong id="ownerActiveDentistName">Dr. Wandersson Saraiva</strong></div>
+<div class="owner-admin-note"><strong>Importante:</strong> esta área é reservada ao dono da plataforma. Na versão online, o bloqueio será feito por login, senha e permissão no servidor — não apenas ocultando a aba.</div>
+</div>
+<div class="card">
+<div class="panel-head"><div><h3>Cadastrar novo dentista</h3><p>Crie um novo perfil profissional com agenda independente</p></div></div>
+<form id="dentistForm">
+<div class="central-form-grid">
+<div class="field full"><label>Nome profissional</label><input name="name" placeholder="Ex.: Dra. Ana Souza" required=""/></div>
+<div class="field"><label>CRO</label><input name="cro" placeholder="Ex.: CRO-SP 12345"/></div>
+<div class="field"><label>Especialidade</label><input name="specialty" placeholder="Ex.: Endodontia"/></div>
+<div class="field"><label>Clínica / consultório</label><input name="clinic" placeholder="Nome do consultório"/></div>
+<div class="field"><label>WhatsApp</label><input name="whatsapp" inputmode="numeric" maxlength="11" pattern="\d{11}" placeholder="98981452367" type="tel"/></div>
+<div class="field"><label>E-mail</label><input name="email" placeholder="dentista@exemplo.com" type="email"/></div>
+<div class="field"><label>Chave PIX</label><input name="pixKey" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"/></div>
+<div class="field"><label>Link de pagamento por cartão</label><input name="cardPaymentLink" placeholder="https://..." type="url"/></div>
+</div>
+<div class="central-register-actions"><button class="btn btn-primary" type="submit">Cadastrar dentista</button></div>
+</form>
+</div>
+</div>
+<div class="card central-list-card owner-dentist-manager">
+<div class="panel-head"><div><h3>Dentistas associados ao Rootis</h3><p>Acompanhe cadastro, pacientes e faturamento de cada profissional</p></div><span class="active-pill">VISÃO GERAL</span></div>
+<div class="dentist-list" id="dentistList"></div>
+</div>
+<div class="central-security-note"><strong>Controle de acesso:</strong> esta área é exclusiva da conta proprietária. Dentistas associados não recebem a aba Administrador. Na publicação em <strong>www.rootins.com.br</strong>, a mesma regra deverá ser validada também no servidor e no banco de dados.</div>
+</section>
+
+<section class="page active" id="dashboard">
+<div class="welcome"><div><span class="eyebrow">ROOTIS · AGENDA PESSOAL</span><h2 id="welcomeDentist">Bom dia, Dra. Carla Matos. Aqui está sua agenda de hoje.</h2><p>Atendimentos, horários e confirmações em um só lugar.</p></div><button class="btn btn-ghost" data-go="agenda">Abrir agenda</button></div>
+<div class="stats">
+<div class="card stat"><span>Pacientes hoje</span><strong id="statToday">4</strong><small>3 confirmados</small></div>
+<div class="card stat"><span>Próximo horário</span><strong id="nextApptTime">—</strong><small id="nextApptName">Sem próximo atendimento</small></div>
+<div class="card stat"><span>Pagamentos pendentes</span><strong id="pendingPayments">0</strong><small>aguardando pagamento</small></div>
+<div class="card stat stat-action" data-go="confirmacoes"><span>Novos pedidos</span><strong id="pendingConfirmationsCount">0</strong><small>toque para confirmar ou cancelar</small></div>
+</div>
+<div class="grid">
+<div class="card panel today-agenda-panel"><div class="panel-head today-agenda-head"><div><h3>Agenda de hoje</h3><p id="todayAgendaSubtitle">Seus pacientes e horários</p></div><button class="linkbtn today-calendar-link" data-go="agenda">Ver calendário →</button></div><div class="agenda-list today-agenda-list" id="todayList"></div></div>
+<div class="card panel quick-panel">
+<div class="panel-head"><div><h3>Ações rápidas</h3><p>O essencial do dia</p></div></div>
+<div class="quick">
+<button id="quickAppt"><span class="quick-icon">＋</span><div><strong>Novo agendamento</strong><small>Cadastrar paciente e horário</small></div></button>
+<button data-go="confirmacoes"><span class="quick-icon">✓</span><div><strong>Confirmações</strong><small>Aprovar, cancelar e avisar pelo WhatsApp</small></div></button>
+<button data-go="pacientes"><span class="quick-icon">P</span><div><strong>Pacientes</strong><small>Abrir cadastro e relatórios</small></div></button>
+<button id="quickPay"><span class="quick-icon">$</span><div><strong>Solicitar pagamento</strong><small>Gerar cobrança por PIX ou cartão e enviar no WhatsApp</small></div></button>
+<button id="quickPendingAppointments"><span class="quick-icon">⌛</span><div><strong>Atendimentos pendentes</strong><small id="quickPendingCount">Veja os atendimentos que ainda faltam</small></div></button>
+<button id="quickRevenue"><span class="quick-icon">R$</span><div><strong>Faturamento do mês</strong><small id="quickRevenueSummary">Ver recebimentos do mês atual</small></div></button>
+<button id="quickBookingLink"><span class="quick-icon">↗</span><div><strong>Link de agendamento</strong><small>Gerar, copiar ou abrir o link do paciente</small></div></button>
+<button data-go="perfil"><span class="quick-icon">◷</span><div><strong>Lembretes automáticos</strong><small>Paciente: 8h e 2h · Dentista: 7d, 1d e 2h</small></div></button>
+</div></div>
+</div>
+</section>
+<section class="page" id="confirmacoes">
+<div class="confirmation-hero">
+<div><span class="eyebrow">ROOTIS · CENTRAL DE CONFIRMAÇÕES</span><h2>Gerencie pagamento e confirmação</h2><p>Envie a solicitação de pagamento, confirme após o recebimento ou cancele o atendimento pelo WhatsApp.</p></div>
+<div class="confirmation-summary"><span>Aguardando ação</span><strong id="confirmationPendingTotal">0</strong></div>
+</div>
+<div class="confirmation-toolbar card">
+<div><strong>Atendimentos</strong><small>Gerencie solicitações do paciente e próximos horários confirmados</small></div>
+<select aria-label="Filtrar confirmações" id="confirmationFilter">
+<option value="pending">Aguardando confirmação / pagamento</option>
+<option value="confirmed">Confirmados</option>
+<option value="cancelled">Cancelados</option>
+<option value="all">Todos</option>
+</select>
+</div>
+<div class="confirmation-list" id="confirmationList"></div>
+<div class="confirmation-api-note"><strong>WhatsApp nesta versão local:</strong> ao confirmar ou cancelar, o Rootis abre o WhatsApp com a mensagem preenchida para você revisar e enviar. O envio totalmente automático, sem abrir o WhatsApp, exige a API oficial quando o sistema estiver online.</div>
+</section>
+<section class="page" id="agenda">
+<div class="agenda-toolbar">
+  <div>
+    <span class="agenda-kicker">AGENDA PROFISSIONAL</span>
+    <h2>Calendário de atendimentos</h2>
+    <p>Clique em um dia para ver os atendimentos confirmados. Cada horário é exclusivo e ocupa todo o intervalo definido pelo dentista.</p>
+  </div>
+  <button class="btn btn-primary" id="newAppt2">+ Agendamento</button>
+</div>
+<div class="agenda-calendar-layout">
+  <div class="card calendar agenda-calendar-card">
+    <div class="calendar-monthbar">
+      <button class="calendar-nav-btn" id="prevCalendarMonth" type="button" aria-label="Mês anterior">‹</button>
+      <div class="calendar-month-title"><strong id="calendarMonthLabel">Setembro de 2026</strong><span>Visão mensal</span></div>
+      <button class="calendar-nav-btn" id="nextCalendarMonth" type="button" aria-label="Próximo mês">›</button>
+    </div>
+    <div class="calendar-legend">
+      <span><i class="legend-dot legend-confirmed"></i>Confirmado e pago</span>
+      <span class="calendar-rule-note">Aguardando pagamento fica em Confirmações</span>
+    </div>
+    <div class="week"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+    <div class="days" id="calendar"></div>
+  </div>
+  <aside class="agenda-day-column">
+    <div class="card panel agenda-day-card">
+      <div class="panel-head"><div><h3>Pacientes confirmados do dia</h3><p id="selectedDateLabel">25 de setembro</p></div><span class="day-patient-count" id="selectedDayPatientCount">0 pacientes</span></div>
+      <div class="selected-day-patients" id="selectedDayPatients"></div>
+    </div>
+    <div class="card panel agenda-slots-card">
+      <div class="panel-head"><div><h3>Horários disponíveis</h3><p>Disponibilidade configurada para o dia selecionado</p></div></div>
+      <div id="slots"></div>
+    </div>
+  </aside>
+</div>
+</section>
+<section class="page" id="pacientes">
+<div class="patient-overview">
+  <div class="patient-overview-card"><span>Total de pacientes</span><strong id="patientTotalCount">0</strong><small>cadastros nesta agenda</small></div>
+  <div class="patient-overview-card"><span>Total de atendimentos</span><strong id="patientTotalAppointments">0</strong><small>agendamentos registrados</small></div>
+  <div class="patient-overview-card"><span>Encontrados</span><strong id="patientFoundCount">0</strong><small>resultado da busca atual</small></div>
+</div>
+<div class="toolbar patient-toolbar"><input class="search" id="patientSearch" placeholder="Buscar paciente por nome ou WhatsApp"/><button class="btn btn-primary" id="newPatient" type="button">+ Paciente</button></div>
+<div class="card table-card"><div class="table-wrap"><table><thead><tr><th>Paciente</th><th>Telefone</th><th>Último atendimento</th><th>Próximo</th><th></th></tr></thead><tbody id="patientRows"></tbody></table></div></div>
+<div class="patient-mobile-cards" id="patientMobileCards"></div>
+
+<div class="card patient-detail-card" id="patientReport">
+  <div class="patient-head patient-detail-head">
+    <div class="patient-id"><div class="avatar" id="patientReportAvatar">MS</div><div><h2 id="patientReportName">Mariana Souza</h2><p id="patientReportContact">(11) 99999-0000</p></div></div>
+    <div class="patient-detail-actions">
+      <button class="btn btn-ghost" id="patientNewAppointment" type="button">+ Novo agendamento</button>
+      <button class="btn btn-whatsapp" id="patientChargeButton" type="button">Cobrar paciente</button>
+      <button class="btn btn-primary" id="openClinicalReport" type="button">Emitir relatório</button>
+    </div>
+  </div>
+
+  <form id="patientEditorForm" class="patient-editor-form">
+    <div class="patient-editor-grid">
+      <label class="patient-field patient-field-wide"><span>Nome completo</span><input id="patientEditName" name="name" required/></label>
+      <label class="patient-field"><span>WhatsApp</span><input id="patientEditPhone" name="phone" type="tel" inputmode="numeric" maxlength="11" pattern="\d{11}" placeholder="98981452367" required/><small class="field-hint">Somente 11 números: DDD + celular. Ex.: 98981452367.</small></label>
+      <label class="patient-field"><span>E-mail</span><input id="patientEditEmail" name="email" type="email" placeholder="paciente@email.com"/></label>
+      <label class="patient-field patient-field-wide"><span>Endereço</span><input id="patientEditAddress" name="address" placeholder="Rua, número, bairro, cidade"/></label>
+      <label class="patient-field"><span>Valor a ser pago</span><div class="money-edit"><span>R$</span><input id="patientEditDue" name="amountDue" inputmode="decimal" min="0" step="0.01" type="number"/></div></label>
+      <label class="patient-field"><span>Valor pago</span><div class="money-edit"><span>R$</span><input id="patientEditPaid" name="amountPaid" inputmode="decimal" min="0" step="0.01" type="number"/></div></label>
+      <label class="patient-field"><span>Valor em aberto</span><div class="money-edit money-readonly"><span>R$</span><input id="patientEditOpen" readonly type="number" tabindex="-1"/></div></label>
+      <label class="patient-field"><span>Última consulta</span><input id="patientEditLast" name="last" placeholder="dd/mm/aaaa"/></label>
+      <label class="patient-field"><span>Próxima consulta</span><input id="patientEditNext" name="next" placeholder="dd/mm · hh:mm"/></label>
+    </div>
+    <div class="patient-editor-actions">
+      <button class="btn btn-danger-soft" id="deletePatient" type="button">Excluir paciente</button>
+      <button class="btn btn-primary" type="submit">Salvar alterações</button>
+    </div>
+  </form>
+
+  <section class="patient-treatment-section" aria-labelledby="patientTreatmentTitle">
+    <div class="patient-treatment-head">
+      <div>
+        <span class="eyebrow" style="color:var(--green)">HISTÓRICO CLÍNICO</span>
+        <h3 id="patientTreatmentTitle">Tratamentos do paciente</h3>
+        <p>Registre o dente tratado, o procedimento realizado e o valor cobrado.</p>
+      </div>
+      <div class="patient-treatment-head-actions">
+        <div class="patient-treatment-total"><span>Total registrado</span><strong id="patientTreatmentTotal">R$ 0,00</strong></div>
+        <button class="btn btn-primary" id="patientTreatmentAdd" type="button">+ Adicionar tratamento</button>
+      </div>
+    </div>
+
+    <form class="patient-treatment-form" id="patientTreatmentForm" hidden>
+      <input id="patientTreatmentId" type="hidden"/>
+      <div class="patient-treatment-form-grid">
+        <label class="patient-field"><span>Data</span><input id="patientTreatmentDate" type="date" required/></label>
+        <label class="patient-field"><span>Número do dente</span><input id="patientTreatmentTooth" inputmode="numeric" placeholder="Ex.: 11" required/></label>
+        <label class="patient-field"><span>Tipo de tratamento</span><select id="patientTreatmentType" required>
+          <option value="Endodontia">Endodontia</option>
+          <option value="Implante">Implante</option>
+          <option value="Restauração">Restauração</option>
+          <option value="Extração">Extração</option>
+          <option value="Prótese">Prótese</option>
+          <option value="Periodontia">Periodontia / Limpeza</option>
+          <option value="Clareamento">Clareamento</option>
+          <option value="Outro">Outro</option>
+        </select></label>
+        <label class="patient-field patient-treatment-description"><span>O que foi feito</span><input id="patientTreatmentDescription" placeholder="Ex.: Tratamento endodôntico concluído e restauração provisória" required/></label>
+        <label class="patient-field"><span>Valor cobrado</span><div class="money-edit"><span>R$</span><input id="patientTreatmentAmount" inputmode="decimal" min="0" step="0.01" type="number" value="0" required/></div></label>
+      </div>
+      <div class="patient-treatment-form-actions">
+        <button class="btn btn-ghost" id="patientTreatmentCancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="patientTreatmentSave" type="submit">Adicionar tratamento</button>
+      </div>
+    </form>
+
+    <div class="patient-treatment-history" id="patientTreatmentHistory"></div>
+  </section>
+
+  <div class="patient-summary-strip">
+    <div><span>Último atendimento</span><strong id="patientReportLast">—</strong></div>
+    <div><span>Próximo agendamento</span><strong id="patientReportNext">—</strong></div>
+    <div><span>Total de atendimentos</span><strong id="patientReportTotal">0</strong></div>
+    <div><span>Status</span><strong id="patientReportStatus">Cadastro ativo</strong></div>
+  </div>
+  <div class="timeline" id="patientTimeline"></div>
+  <div class="report-export-note"><strong>Relatório sob demanda.</strong> Ao emitir, os dados clínicos e as radiografias são usados apenas para montar a exportação. O Rootis não salva o relatório nem os arquivos de imagem.</div>
+</div>
+</section>
+
+<section class="page" id="perfil">
+<div class="profile-hero">
+<div><span class="eyebrow">ROOTIS · PERFIL PROFISSIONAL</span><h2>Perfil do dentista</h2><p>Seus dados profissionais e todas as configurações da sua agenda ficam reunidos aqui.</p></div>
+<span class="profile-role-pill" id="profileRolePill">DENTISTA</span>
+</div>
+<div class="profile-finance-mini" aria-label="Resumo financeiro integrado">
+  <div class="profile-finance-item finance-month-card">
+    <span id="monthlyRevenueLabel">Faturado no mês</span>
+    <strong id="monthlyRevenueValue" class="finance-revenue-value">R$ 0,00</strong>
+    <small>Recebimentos do mês atual</small>
+  </div>
+  <div class="profile-finance-item finance-total-card">
+    <span>Total recebido</span>
+    <strong id="lifetimeRevenueValue" class="finance-lifetime-value finance-total-value">R$ 0,00</strong>
+    <small>Todos os pagamentos já registrados</small>
+  </div>
+  <label class="profile-finance-item profile-finance-goal" for="monthlyGoalInput">
+    <span>Meta mensal</span>
+    <div class="goal-input-wrap"><span>R$</span><input id="monthlyGoalInput" inputmode="decimal" min="0" step="100" type="number" value="5000" aria-label="Meta mensal em reais"/></div>
+    <small>Atualiza automaticamente com os pagamentos</small>
+  </label>
+  <div class="profile-finance-item">
+    <span>Falta para a meta</span>
+    <strong id="monthlyRemainingValue" class="finance-remaining-value goal-pending">R$ 0,00</strong>
+    <small id="monthlyGoalStatus">Calculado pelo faturamento do mês</small>
+  </div>
+</div>
+<div class="profile-section-nav">
+<button data-profile-target="cadastroDentista" type="button">Meu cadastro</button>
+<button data-profile-target="recebimentosDentista" type="button">Recebimentos</button>
+<button data-profile-target="lembretesDentista" type="button">Lembretes</button>
+<button data-profile-target="pagamentoDentista" type="button">Pagamento</button>
+<button data-profile-target="agendaDentista" type="button">Agenda e link</button>
+</div>
+<div class="card profile-main-card" id="cadastroDentista">
+<div class="panel-head"><div><h3>Meu cadastro profissional</h3><p>Edite as informações do perfil exibidas na sua agenda</p></div><span class="active-pill">PERFIL</span></div>
+<div id="activeDentistCard"></div>
+<form class="profile-edit-form" id="profileDentistForm">
+<div class="central-form-grid">
+<div class="field full"><label>Nome profissional</label><input id="profileDentistName" name="name" required=""/></div>
+<div class="field"><label>CRO</label><input id="profileDentistCro" name="cro" placeholder="Ex.: CRO-SP 12345"/></div>
+<div class="field"><label>Especialidade</label><input id="profileDentistSpecialty" name="specialty" placeholder="Ex.: Endodontia"/></div>
+<div class="field"><label>Clínica / consultório</label><input id="profileDentistClinic" name="clinic"/></div>
+<div class="field"><label>WhatsApp</label><input id="profileDentistWhatsapp" name="whatsapp" type="tel" inputmode="numeric" maxlength="11" pattern="\d{11}" placeholder="98981452367"/></div>
+<div class="field"><label>E-mail</label><input id="profileDentistEmail" name="email" type="email"/></div>
+</div>
+<div class="profile-edit-actions">
+<button class="btn btn-primary" type="submit">Salvar alterações do perfil</button>
+<button class="btn btn-danger-soft" id="deleteOwnDentist" type="button">Excluir cadastro</button>
+</div>
+<p class="profile-delete-help" id="profileDeleteHelp"></p>
+</form>
+</div>
+<div class="card central-payment-card" id="recebimentosDentista">
+<div class="panel-head"><div><h3>Meus recebimentos</h3><p>PIX e cartão exibidos na página de agendamento deste dentista</p></div><span class="active-pill">RECEBIMENTO</span></div>
+<div class="central-form-grid">
+<div class="field"><label>Chave PIX</label><input id="activeDentistPix" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"/></div>
+<div class="field"><label>Nome do recebedor PIX (opcional)</label><input id="activeDentistPixReceiver" placeholder="Nome que o paciente verá"/></div>
+<div class="field full"><label>Link de pagamento por cartão</label><input id="activeDentistCardLink" placeholder="https://seu-link-de-pagamento.com" type="url"/></div>
+</div>
+<div class="payment-central-help">Você pode usar uma chave PIX e/ou um link de cartão. O paciente verá somente os meios que estiverem preenchidos.</div>
+<div class="admin-actions"><button class="btn btn-primary" id="saveDentistPaymentData" type="button">Salvar dados de recebimento</button></div>
+</div>
+<div class="dentist-settings-wrap">
+<div class="settings">
+<div class="card panel reminder-card" id="lembretesDentista"><div class="panel-head"><div><h3>Lembretes automáticos</h3><p>Organize os avisos do paciente e do dentista</p></div></div>
+<div class="reminder-note"><strong>Paciente</strong> recebe lembretes antes do próprio atendimento. <strong>Dentista</strong> recebe avisos no WhatsApp administrativo para se organizar com antecedência.</div>
+<div class="reminder-section">
+<div class="reminder-section-head"><div class="reminder-icon">P</div><div><strong>Paciente</strong><small>Lembretes do atendimento</small></div></div>
+<div class="reminder-row"><div><strong>8 horas antes</strong><small>Enviar lembrete ao paciente</small></div><input checked="" class="toggle reminder-setting" id="patientReminder8h" type="checkbox"/></div>
+<div class="reminder-row"><div><strong>2 horas antes</strong><small>Último lembrete ao paciente</small></div><input checked="" class="toggle reminder-setting" id="patientReminder2h" type="checkbox"/></div>
+</div>
+<div class="reminder-section dentist-reminders">
+<div class="reminder-section-head"><div class="reminder-icon">D</div><div><strong id="dentistReminderTitle">Dentista · Dra. Carla Matos</strong><small>Avisos no seu WhatsApp</small></div></div>
+<div class="reminder-row"><div><strong>1 semana antes</strong><small>Preparação antecipada do atendimento</small></div><input checked="" class="toggle reminder-setting" id="dentistReminder7d" type="checkbox"/></div>
+<div class="reminder-row"><div><strong>1 dia antes</strong><small>Resumo do atendimento do dia seguinte</small></div><input checked="" class="toggle reminder-setting" id="dentistReminder1d" type="checkbox"/></div>
+<div class="reminder-row"><div><strong>2 horas antes</strong><small>Aviso próximo ao horário do paciente</small></div><input checked="" class="toggle reminder-setting" id="dentistReminder2h" type="checkbox"/></div>
+</div>
+<div class="field reminder-phone-field"><label>WhatsApp do dentista</label><input id="dentistWhatsapp" placeholder="98981452367" type="tel" inputmode="numeric" maxlength="11" pattern="\d{11}"/></div>
+<div class="reminder-summary-box">
+<div><strong>Resumo semanal de atendimentos</strong><small>Receba no seu WhatsApp uma visão da agenda da semana.</small></div>
+<input checked="" class="toggle reminder-setting" id="weeklySummaryEnabled" type="checkbox">
+</input></div>
+<div class="reminder-summary-config">
+<div class="field"><label>Dia do resumo</label><select id="weeklySummaryDay"><option value="1">Segunda-feira</option><option value="0">Domingo</option><option value="5">Sexta-feira</option></select></div>
+<div class="field"><label>Horário</label><input id="weeklySummaryTime" type="time" value="07:00"/></div>
+</div>
+<div class="automation-status"><span class="status-dot"></span><div><strong>Configuração de automação</strong><small>No arquivo local, estas preferências ficam salvas no navegador. O envio automático real pelo WhatsApp será ativado quando o sistema estiver online e conectado à API do WhatsApp.</small></div></div>
+<div class="admin-actions"><button class="btn btn-primary" id="saveReminderConfig" type="button">Salvar lembretes</button></div>
+</div>
+<div class="card panel" id="pagamentoDentista"><div class="panel-head"><div><h3>Pagamento do agendamento</h3><p>Configure sua cobrança e explique ao paciente</p></div></div>
+<div class="field"><label>Valor padrão</label><input id="paymentAmount" type="number" value="100"/></div>
+<div class="field"><label>Forma de cobrança</label><select id="paymentMethod"><option>PIX</option><option>Cartão</option><option>PIX ou cartão</option></select></div>
+<div class="reminder-row"><div><strong>Exigir pagamento para confirmar</strong><small>O horário fica pendente até o pagamento</small></div><input checked="" class="toggle" id="paymentRequired" type="checkbox"/></div>
+<div class="field" style="margin-top:12px"><label>Texto explicativo do pagamento</label><textarea class="payment-copy" id="paymentExplanation" rows="6">Este valor é referente à reserva do horário de atendimento. O pagamento garante a separação exclusiva deste período na agenda e será considerado conforme a política definida pelo profissional. Em caso de dúvida, entre em contato antes de efetuar o pagamento.</textarea></div>
+<p class="payment-help">Você pode escrever livremente como o pagamento funciona, para que serve, regras de cancelamento, crédito no atendimento ou qualquer outra orientação ao paciente. A <strong>chave PIX</strong> e o <strong>link de cartão</strong> são cadastrados na Central de Dentistas e aparecem automaticamente ao paciente.</p>
+<div class="admin-actions"><button class="btn btn-primary" id="savePaymentConfig" type="button">Salvar pagamento</button></div>
+</div>
+<div class="card panel" id="agendaDentista" style="grid-column:1/-1"><div class="panel-head"><div><h3>Agenda aberta para atendimentos</h3><p>Escolha quantos pacientes deseja atender em cada dia da semana</p></div></div>
+<div class="availability-note">Cada <strong>horário</strong> corresponde a um paciente. Você pode abrir quantos horários quiser em cada dia e definir manualmente o início e o fim de cada atendimento. Exemplo: <strong>Horário 1 · 08:00 às 11:00</strong>, <strong>Horário 2 · 12:00 às 15:00</strong> e <strong>Horário 3 · 16:00 às 19:00</strong>.</div>
+<div class="availability" id="availabilityEditor"></div>
+<div class="admin-actions"><button class="btn btn-primary" id="saveAvailability" type="button">Salvar horários da semana</button></div>
+</div>
+<div class="card panel booking-model-card" id="bookingModelCard" style="grid-column:1/-1">
+<div class="panel-head booking-model-head"><div><h3>Modelo da página de agendamento</h3><p>Escolha como seus pacientes verão os dias e horários disponíveis</p></div><span class="active-pill">VISUAL</span></div>
+<div class="booking-model-options">
+<label class="booking-model-option" for="bookingModelList">
+<input id="bookingModelList" name="bookingModel" type="radio" value="list"/>
+<span class="booking-model-radio"></span>
+<span class="booking-model-preview booking-model-preview-list"><i></i><i></i><i></i></span>
+<span class="booking-model-copy"><strong>Lista de dias e horários</strong><small>Os próximos dias aparecem em uma lista com seus horários livres.</small></span>
+</label>
+<label class="booking-model-option" for="bookingModelCalendar">
+<input id="bookingModelCalendar" name="bookingModel" type="radio" value="calendar"/>
+<span class="booking-model-radio"></span>
+<span class="booking-model-preview booking-model-preview-calendar"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+<span class="booking-model-copy"><strong>Calendário por etapas</strong><small>O paciente escolhe primeiro a data, depois o horário e, por fim, preenche seus dados.</small></span>
+</label>
+</div>
+<div class="booking-model-actions"><button class="btn btn-primary" id="saveBookingModel" type="button">Salvar modelo de agendamento</button></div>
+</div>
+<div class="card panel" style="grid-column:1/-1"><div class="panel-head"><div><h3>Link de agendamento do paciente</h3><p>Envie uma página separada para o paciente escolher um horário disponível</p></div></div>
+<div class="availability-note">O paciente verá somente a sua identificação, os próximos dias com agenda aberta e os horários disponíveis. O painel de administrador não aparece nessa visualização.</div>
+<div class="patient-link-box">
+<div class="field"><label>Link do paciente</label><input id="patientLink" placeholder="Clique em Gerar link" readonly=""/></div>
+<button class="btn btn-ghost" id="previewPatientLink" type="button">Abrir página</button>
+<button class="btn btn-primary" id="copyPatientLink" type="button">Copiar link</button>
+</div>
+<p class="patient-link-note">No arquivo executável local, o botão <strong>Abrir página</strong> abre a área do paciente dentro deste mesmo HTML, evitando erro de arquivo não encontrado. Para enviar o link a outro celular/computador, o Rootis precisará estar publicado em um endereço online.</p>
+</div>
+<div class="card panel"><div class="panel-head"><div><h3>Mensagem de confirmação</h3><p>Texto enviado ao paciente</p></div></div><div class="field"><label>Mensagem</label><textarea rows="6">Olá, [nome]. Seu atendimento com [dentista] está agendado para [data] às [horário]. Por favor, confirme sua presença. Caso precise alterar, avise com antecedência.</textarea></div></div>
+</div>
+</div>
+</section>
+
+</div>
+</main>
+</div>
+<button class="global-logout" id="logoutButton" type="button" title="Sair do Rootis"><span>↪</span><strong>Sair</strong></button>
+<nav aria-label="Navegação mobile" class="mobile-nav" id="mobileNav">
+<button data-mobile-page="perfil" type="button"><span>♙</span><small>Perfil</small></button>
+<button class="active" data-mobile-page="dashboard" type="button"><span>●</span><small>Início</small></button>
+<button data-mobile-page="confirmacoes" type="button"><span>✓</span><small>Confirmar</small></button>
+<button data-mobile-page="agenda" type="button"><span>▦</span><small>Agenda</small></button>
+<button data-mobile-page="pacientes" type="button"><span>☷</span><small>Pacientes</small></button>
+<button class="owner-only" data-mobile-page="administrador" type="button"><span>⚙</span><small>Admin</small></button>
+</nav>
+<div class="patient-portal" id="patientPortal">
+<div class="patient-shell">
+<button class="patient-back-button" id="patientBackButton" type="button">← Voltar</button>
+<div class="patient-brand"><div class="patient-brand-left"><div class="logo">R</div><div><strong>Rootis</strong><small>Agendamento online</small></div></div><div style="text-align:right"><strong id="publicDentistName" style="font-size:11px">Dra. Carla Matos</strong><small style="display:block;color:var(--muted);font-size:8px;margin-top:3px">Área exclusiva do paciente</small></div></div>
+<div class="patient-hero"><span class="eyebrow">AGENDAMENTO ONLINE</span><h1>Escolha o melhor dia para o seu atendimento.</h1><p>Abaixo aparecem somente os dias em que a agenda está aberta. Selecione um horário e preencha seus dados para solicitar o agendamento.</p></div>
+<div class="patient-grid">
+<div class="card public-availability-card"><h2 class="patient-section-title" id="publicAvailabilityTitle">Dias e horários disponíveis</h2><p class="patient-section-sub" id="publicAvailabilitySub">Próximas datas com agenda aberta</p><div class="public-days" id="publicDays"></div></div>
+<div class="card patient-form" id="patientFormCard"><h2 class="patient-section-title">Seus dados</h2><p class="patient-section-sub">Preencha após escolher um horário</p>
+<div class="chosen-slot" id="chosenSlot">Nenhum horário selecionado.</div>
+<form id="patientBookingForm">
+<div class="field"><label>Nome completo</label><input name="name" placeholder="Seu nome" required=""/></div>
+<div class="field patient-whatsapp-field"><label>WhatsApp para confirmação</label><input aria-describedby="patientWhatsappHelp" autocomplete="tel" id="patientWhatsapp" inputmode="numeric" maxlength="11" name="phone" pattern="\d{11}" placeholder="98981452367" required="" type="tel"/><div class="patient-whatsapp-note" id="patientWhatsappHelp"><strong>Use somente números.</strong> Digite obrigatoriamente <strong>11 números</strong>, com DDD + celular, sem espaços, traços ou parênteses. Exemplo: <strong>98981452367</strong>. O Rootis usa esse formato para abrir o WhatsApp corretamente.</div><label class="whatsapp-confirm-check"><input id="patientWhatsappConfirmed" name="whatsappConfirmed" required="" type="checkbox"/><span>Confirmo que revisei o número acima e que o WhatsApp informado está correto.</span></label></div>
+<div class="field"><label>E-mail</label><input name="email" placeholder="seuemail@exemplo.com" type="email"/></div>
+<div class="field"><label>Observação (opcional)</label><textarea name="note" placeholder="Escreva alguma observação, se necessário" rows="3"></textarea></div>
+<button class="btn btn-primary" style="width:100%" type="submit">Solicitar agendamento</button>
+</form>
+<div class="public-payment" id="publicPayment"></div>
+<div class="patient-success" id="patientSuccess"></div>
+</div>
+</div>
+<div class="patient-footer" id="publicDentistFooter">Rootis · Agendamento com Dra. Carla Matos</div>
+</div>
+</div>
+<div class="modal" id="apptModal"><div class="modal-card"><div class="modal-head"><div><span class="eyebrow" style="color:var(--green)">NOVO AGENDAMENTO</span><h2>Cadastrar horário</h2></div><button class="x" data-close="">×</button></div><form id="apptForm"><div class="form-grid"><label class="full">Paciente<input name="name" placeholder="Nome completo" required=""/></label><label>WhatsApp<input name="phone" placeholder="98981452367" inputmode="numeric" maxlength="11" pattern="\d{11}" required="" type="tel"/></label><label>E-mail<input name="email" type="email"/></label><label>Data<input id="apptDate" name="date" required="" type="date"/></label><label>Horário<select id="apptTime" name="slot" required=""><option value="">Escolha primeiro a data</option></select></label><label class="full">Status<select name="status"><option value="Confirmado">Confirmado (pagamento recebido)</option><option value="Aguardando pagamento">Aguardando pagamento</option><option value="Aguardando confirmação">Aguardando confirmação</option></select></label></div><div class="modal-actions"><button class="btn btn-ghost" data-close="" type="button">Cancelar</button><button class="btn btn-primary">Salvar</button></div></form></div></div>
+<div class="modal" id="payModal"><div class="modal-card payment-request-modal"><div class="modal-head"><div><span class="eyebrow" style="color:var(--green)">COBRANÇA</span><h2>Solicitar pagamento</h2><p>Escolha o paciente, a forma de pagamento e envie a cobrança pelo WhatsApp.</p></div><button class="x" data-close-pay="">×</button></div><form id="payForm"><div class="form-grid"><label class="full">Paciente<select id="paymentPatientSelect" name="patientTarget" required=""></select></label><label>Valor (R$)<input id="paymentChargeAmount" min="0" name="amount" step="0.01" type="number" value="100"/></label><label>Forma<select id="paymentChargeMethod" name="method"><option>PIX</option><option>Cartão</option><option>PIX ou cartão</option></select></label><label class="full">Mensagem<textarea id="paymentModalMessage" rows="5">Olá! Para confirmar seu horário, realize o pagamento da taxa de agendamento. Após a confirmação, seu horário ficará reservado.</textarea></label></div><div class="payment-send-preview" id="paymentSendPreview"></div><div class="modal-actions"><button class="btn btn-ghost" data-close-pay="" type="button">Cancelar</button><button class="btn btn-whatsapp" type="submit">Enviar cobrança no WhatsApp</button></div></form></div></div>
+<div class="modal" id="pendingAppointmentsModal">
+<div class="modal-card dashboard-detail-modal">
+<div class="modal-head"><div><span class="eyebrow" style="color:var(--green)">AGENDA</span><h2>Atendimentos pendentes</h2><p>Todos os atendimentos que ainda estão pela frente, confirmados ou aguardando conclusão.</p></div><button class="x" data-close-pending="" type="button">×</button></div>
+<div class="detail-summary-strip"><span>Atendimentos restantes</span><strong id="pendingAppointmentsTotal">0</strong></div>
+<div class="dashboard-detail-list" id="pendingAppointmentsList"></div>
+<div class="modal-actions"><button class="btn btn-ghost" data-close-pending="" type="button">Fechar</button><button class="btn btn-primary" data-go-confirmations="" type="button">Abrir confirmações</button></div>
+</div>
+</div>
+<div class="modal" id="revenueModal">
+<div class="modal-card dashboard-detail-modal">
+<div class="modal-head"><div><span class="eyebrow" style="color:var(--green)">FINANCEIRO</span><h2>Faturamento</h2><p>Acompanhe o mês atual, compare os meses ou veja o total recebido.</p></div><button class="x" data-close-revenue="" type="button">×</button></div>
+<div class="revenue-toolbar"><label>Visualizar<select id="revenueViewMode"><option value="current">Mês atual</option><option value="months">Por meses</option><option value="total">Total geral</option></select></label></div>
+<div class="revenue-hero"><span id="revenueHeroLabel">Faturado no mês atual</span><strong id="revenueHeroValue">R$ 0,00</strong><small id="revenueHeroMeta"></small></div>
+<div class="dashboard-detail-list" id="revenueDetailList"></div>
+<div class="modal-actions"><button class="btn btn-primary" data-close-revenue="" type="button">Fechar</button></div>
+</div>
+</div>
+<div class="modal" id="bookingLinkModal">
+<div class="modal-card dashboard-detail-modal">
+<div class="modal-head"><div><span class="eyebrow" style="color:var(--green)">AGENDAMENTO ONLINE</span><h2>Link de agendamento</h2><p>Use o mesmo link configurado no perfil para seus pacientes agendarem pelo celular.</p></div><button class="x" data-close-booking-link="" type="button">×</button></div>
+<div class="quick-link-box"><label>Link do paciente<input id="quickPatientLink" readonly="" type="text"/></label><p>No arquivo local, o link abre a área do paciente neste mesmo HTML. Quando o Rootis estiver publicado, este será o endereço para compartilhar.</p></div>
+<div class="modal-actions booking-link-modal-actions"><button class="btn btn-ghost" id="quickOpenPatientLink" type="button">Abrir página</button><button class="btn btn-primary" id="quickCopyPatientLink" type="button">Copiar link</button></div>
+</div>
+</div>
+<div class="modal report-modal" id="clinicalReportModal">
+<div class="modal-card report-modal-card">
+<div class="modal-head">
+<div><span class="eyebrow" style="color:var(--green)">RELATÓRIO CLÍNICO</span><h2>Preparar relatório para exportação</h2></div>
+<button class="x" data-close-report="" type="button">×</button>
+</div>
+<div class="report-privacy-banner"><strong>Não será armazenado.</strong> Este formulário é temporário. O conteúdo clínico e as radiografias permanecem somente nesta tela enquanto você prepara a exportação e não são gravados no armazenamento do Rootis.</div>
+<form id="clinicalReportForm">
+<div class="report-form-section">
+<h3>Identificação</h3>
+<div class="form-grid">
+<label class="full">Paciente<input id="reportPatientName" name="patientName" readonly=""/></label>
+<label>Dentista<input id="reportDentistName" name="dentistName" readonly=""/></label>
+<label>CRO<input id="reportDentistCro" name="dentistCro" readonly=""/></label>
+<label>Clínica / consultório<input id="reportClinic" name="clinic" placeholder="Nome da clínica"/></label>
+<label>Data do atendimento<input id="reportAttendanceDate" name="attendanceDate" type="date"/></label>
+</div>
+</div>
+<div class="report-form-section">
+<h3>Histórico médico e odontológico</h3>
+<div class="form-grid">
+<label>Sensibilidade<input name="sensitivity" placeholder="Ex.: Nenhuma"/></label>
+<label>Sinais clínicos<input name="clinicalSigns" placeholder="Ex.: Fístula"/></label>
+<label class="full">Testes clínicos<textarea name="clinicalTests" placeholder="Ex.: Percussão vertical negativa, palpação negativa, vitalidade negativa" rows="3"></textarea></label>
+<label>Condição pulpar<input name="pulpCondition" placeholder="Ex.: Necrose pulpar"/></label>
+<label>Diagnóstico periapical<input name="periapicalDiagnosis" placeholder="Ex.: Periodontite apical assintomática"/></label>
+<label>Histórico de trauma<select name="trauma"><option>Não</option><option>Sim</option><option>Não informado</option></select></label>
+<label>Condição sistêmica / observações<input name="systemicCondition" placeholder="Ex.: Gestante, alergias, medicações"/></label>
+</div>
+</div>
+<div class="report-form-section">
+<h3>Ficha endodôntica</h3>
+<div class="form-grid">
+<label>Elemento dentário<input id="reportTooth" name="tooth" placeholder="Ex.: 14"/></label>
+<label>Lima memória<input name="memoryFile" placeholder="Ex.: C-Pilot"/></label>
+</div>
+<div class="report-channel-editor">
+<div class="report-channel-head"><span>Canal</span><span>CAD</span><span>CRT</span><span>Lima ini.</span><span>Lima fin.</span><span>Cone</span><span>PAT</span></div>
+<div class="report-channel-row"><input name="ch1name" value="V"/><input name="ch1cad"/><input name="ch1crt"/><input name="ch1ini"/><input name="ch1fin"/><input name="ch1cone"/><input name="ch1pat"/></div>
+<div class="report-channel-row"><input name="ch2name" value="P"/><input name="ch2cad"/><input name="ch2crt"/><input name="ch2ini"/><input name="ch2fin"/><input name="ch2cone"/><input name="ch2pat"/></div>
+<div class="report-channel-row"><input name="ch3name" placeholder="Opc."/><input name="ch3cad"/><input name="ch3crt"/><input name="ch3ini"/><input name="ch3fin"/><input name="ch3cone"/><input name="ch3pat"/></div>
+</div>
+<div class="form-grid" style="margin-top:12px">
+<label>Sistema de instrumentação<input name="instrumentation"/></label>
+<label>Solução irrigadora<input name="irrigant"/></label>
+<label>Solução química auxiliar<input name="auxSolution"/></label>
+<label>Quelante<input name="chelator"/></label>
+<label>Ativação de irrigante<input name="activation"/></label>
+<label>Cimento obturador<input name="sealer"/></label>
+<label>Técnica de obturação<input name="obturation"/></label>
+<label>Blindagem imediata<input name="immediateSeal"/></label>
+</div>
+</div>
+<div class="report-form-section">
+<h3>Informações do atendimento</h3>
+<div class="form-grid">
+<label class="full">Procedimento<input name="procedure" placeholder="Ex.: Tratamento endodôntico"/></label>
+<label>Tipo de sessão<select name="sessionType"><option>Sessão única</option><option>Primeira sessão</option><option>Retorno</option><option>Finalização</option><option>Outro</option></select></label>
+<label>Profissional solicitante / destinatário<input name="recipient" placeholder="Opcional"/></label>
+<label class="full">Evolução clínica<textarea name="clinicalEvolution" placeholder="Descreva a avaliação, o procedimento executado, materiais, intercorrências, orientações e conclusão clínica." rows="8"></textarea></label>
+</div>
+</div>
+<div class="report-form-section report-images-section">
+<h3>Documentação radiográfica</h3>
+<p class="report-form-help">Selecione as imagens diretamente do computador ou celular. O raio X inicial e o raio X final serão inseridos no relatório com suas respectivas legendas. Você também pode anexar radiografias adicionais. As imagens são usadas somente nesta tela e não são salvas no Rootis.</p>
+<div class="report-rx-fields">
+<div class="report-rx-field" id="reportRadiographInitialBox">
+<div class="report-rx-title"><strong>Raio X inicial</strong><span>1 imagem</span></div>
+<label class="report-upload-box" for="reportRadiographInitial">
+<span class="report-upload-icon">＋</span>
+<strong>Enviar imagem do raio X inicial</strong>
+<small>JPG, JPEG, PNG, WEBP, BMP ou outro formato de imagem compatível</small>
+<span class="report-upload-status" id="reportRadiographInitialStatus">Nenhuma imagem selecionada</span>
+</label>
+<input accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif" class="report-file-input" id="reportRadiographInitial" type="file"/>
+<div class="report-radiograph-preview report-radiograph-preview-single" id="reportRadiographInitialPreview"><div class="report-empty-images">A prévia do raio X inicial aparecerá aqui.</div></div>
+</div>
+<div class="report-rx-field" id="reportRadiographFinalBox">
+<div class="report-rx-title"><strong>Raio X final</strong><span>1 imagem</span></div>
+<label class="report-upload-box" for="reportRadiographFinal">
+<span class="report-upload-icon">＋</span>
+<strong>Enviar imagem do raio X final</strong>
+<small>JPG, JPEG, PNG, WEBP, BMP ou outro formato de imagem compatível</small>
+<span class="report-upload-status" id="reportRadiographFinalStatus">Nenhuma imagem selecionada</span>
+</label>
+<input accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif" class="report-file-input" id="reportRadiographFinal" type="file"/>
+<div class="report-radiograph-preview report-radiograph-preview-single" id="reportRadiographFinalPreview"><div class="report-empty-images">A prévia do raio X final aparecerá aqui.</div></div>
+</div>
+</div>
+<div class="report-rx-field report-rx-additional" id="reportRadiographsAdditionalBox">
+<div class="report-rx-title"><strong>Raios X adicionais</strong><span>até 8 imagens</span></div>
+<label class="report-upload-box report-upload-box-additional" for="reportRadiographsAdditional">
+<span class="report-upload-icon">＋</span>
+<strong>Adicionar outros raios X</strong>
+<small>Você pode selecionar várias imagens de uma só vez</small>
+<span class="report-upload-status" id="reportRadiographsAdditionalStatus">Nenhuma imagem adicional selecionada</span>
+</label>
+<input accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif" class="report-file-input" id="reportRadiographsAdditional" multiple="" type="file"/>
+<div class="report-radiograph-preview" id="reportRadiographsAdditionalPreview"><div class="report-empty-images">As prévias das radiografias adicionais aparecerão aqui.</div></div>
+</div>
+</div>
+<div class="report-export-device">
+<div class="report-export-device-copy">
+<span class="eyebrow" style="color:var(--green)">FINALIZAR RELATÓRIO</span>
+<strong>Exportar relatório clínico em PDF</strong>
+<p>O relatório será preparado localmente com os dados e as imagens selecionadas. Clique em <strong>Exportar PDF</strong> e, na janela do navegador, escolha “Salvar como PDF”. Nada deste relatório ou das radiografias será salvo no site.</p>
+</div>
+<div class="report-export-device-actions">
+<button class="btn btn-ghost" data-close-report="" type="button">Cancelar</button>
+<button class="btn btn-primary" id="exportClinicalPdf" type="button">Exportar PDF</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="script.js"></script>
+</body>
+</html>
