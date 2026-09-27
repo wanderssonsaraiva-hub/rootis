@@ -415,7 +415,7 @@ input[type="tel"][maxlength="11"]:invalid:not(:placeholder-shown){border-color:#
 }
 
 /* =========================================================
-   ROOTIS V9 — AUTENTICAÇÃO + ADMINISTRAÇÃO DA PLATAFORMA
+   ROOTIS V10 — AUTENTICAÇÃO + ADMINISTRAÇÃO DA PLATAFORMA
    ========================================================= */
 .auth-shell{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:28px 18px;background:linear-gradient(145deg,#0f2f27 0%,#173d32 55%,#0e2a23 100%);overflow:auto;color:var(--text)}
 .auth-shell[hidden]{display:none!important}
@@ -427,7 +427,61 @@ input[type="tel"][maxlength="11"]:invalid:not(:placeholder-shown){border-color:#
 .auth-channel-fieldset{border:0;padding:0;margin:2px 0 0}.auth-channel-fieldset legend{font-size:9px;font-weight:800;color:#4d675d;margin-bottom:8px}.auth-channel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.auth-channel-option{display:flex!important;align-items:center;gap:8px;border:1px solid #dfeae5;border-radius:12px;padding:10px;background:#fbfdfc;cursor:pointer}.auth-channel-option:has(input:checked){border-color:#8db9a5;background:#edf7f2;box-shadow:inset 0 0 0 1px #c8e0d5}.auth-channel-option input{width:15px!important;height:15px!important;min-height:0!important;accent-color:var(--green);flex:0 0 auto}.auth-channel-option b{display:block;color:#294f41;font-size:9px}.auth-channel-option small{display:block;color:var(--muted);font-size:7px;margin-top:2px;font-weight:500}
 .auth-code-step{display:grid;gap:10px;padding:12px;border:1px solid #d4e6dd;border-radius:14px;background:#f4faf7}.auth-delivery-status{padding:10px;border-radius:10px;background:#fff;border:1px solid #e0ebe6;color:#527064;font-size:9px;line-height:1.5}.auth-delivery-status strong{color:var(--green-dark)}.auth-local-note{margin-top:18px;padding:10px 12px;border-radius:11px;background:#fff8e8;border:1px solid #f0dfbc;color:#7d673d;font-size:8px;line-height:1.5}.auth-footer{text-align:center;margin-top:15px;color:#779087;font-size:9px;font-weight:800}
 body:not(.rootis-authenticated):not(.patient-mode) .app,body:not(.rootis-authenticated):not(.patient-mode) .mobile-nav,body:not(.rootis-authenticated):not(.patient-mode) .global-logout{display:none!important}.rootis-authenticated .auth-shell,.patient-mode .auth-shell{display:none!important}
-.global-logout{position:fixed;left:16px;bottom:16px;z-index:40;border:1px solid #d8e5df;background:rgba(255,255,255,.96);box-shadow:0 10px 28px rgba(27,67,53,.1);border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:7px;color:#547067}.global-logout span{font-size:14px}.global-logout strong{font-size:9px}.global-logout:hover{background:#f5faf7;color:var(--green-dark)}
+.global-logout{position:fixed;left:16px;bottom:82px;z-index:40;border:1px solid #d8e5df;background:rgba(255,255,255,.96);box-shadow:0 10px 28px rgba(27,67,53,.1);border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:7px;color:#547067}.global-logout span{font-size:14px}.global-logout strong{font-size:9px}.global-logout:hover{background:#f5faf7;color:var(--green-dark)}
 .admin-platform-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.admin-platform-stat{padding:15px 17px}.admin-platform-stat span{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.06em;font-weight:800}.admin-platform-stat strong{display:block;margin:6px 0 3px;font-size:22px;color:#244f41}.admin-platform-stat small{display:block;color:#8a9a93;font-size:8px}.dentist-platform-metrics{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.dentist-platform-metrics span{display:inline-flex;align-items:center;border-radius:999px;background:#f1f7f4;color:#4d6d60;padding:4px 7px;font-size:7px;font-weight:800}.dentist-platform-metrics .money{background:#edf7f1;color:#2f735b}
 @media(max-width:900px){.global-logout{left:12px;bottom:calc(76px + env(safe-area-inset-bottom));padding:9px 11px}.global-logout strong{display:none}.admin-platform-stats{grid-template-columns:1fr 1fr 1fr}.auth-card{padding:28px 24px}}
 @media(max-width:650px){.auth-shell{align-items:flex-start;padding:18px 10px}.auth-card{border-radius:22px;padding:24px 16px;margin:auto 0}.auth-brand{margin-bottom:20px}.auth-brand strong{font-size:24px}.auth-brand small{font-size:8px}.auth-view h1{font-size:22px}.auth-form-grid{grid-template-columns:1fr}.auth-full{grid-column:auto}.auth-channel-grid{grid-template-columns:1fr}.auth-channel-option{min-height:52px}.auth-form input,.auth-form select,.auth-code-step input{font-size:16px!important}.admin-platform-stats{grid-template-columns:1fr}.global-logout{width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}.global-logout span{font-size:16px}}
+
+/* V10 · Lista de associados ao clicar no total */
+.admin-associates-card{position:relative}
+.admin-associates-number{display:block;width:max-content;max-width:100%;margin:6px 0 3px;padding:0;border:0;background:transparent;color:#244f41;text-align:left;border-radius:9px;cursor:pointer}
+.admin-associates-number strong{display:block!important;margin:0!important;font-size:22px!important;color:inherit!important;line-height:1.1}
+.admin-associates-number:hover{color:var(--green)}
+.admin-associates-number:focus-visible{outline:2px solid #9fc9b7;outline-offset:5px}
+.admin-associates-list{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);display:grid;gap:7px}
+.admin-associates-list[hidden]{display:none!important}
+.admin-associate-name{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #e3ece7;border-radius:10px;background:#f8fbf9;color:#355f50;font-size:9px;font-weight:800;line-height:1.3}
+.admin-associate-name::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);flex:0 0 auto}
+.admin-associate-empty{padding:8px 0;color:var(--muted);font-size:9px}
+@media(max-width:650px){.admin-associates-number{min-width:44px;min-height:44px;display:flex;align-items:center}.admin-associates-list{margin-top:7px}.admin-associate-name{font-size:10px;padding:9px 10px}}
+
+/* ===== V10: saída integrada ao rodapé lateral (ajuste visual) ===== */
+@media (min-width:901px){
+  .app>aside .profile{
+    margin-bottom:58px;
+  }
+  .global-logout{
+    left:16px;
+    bottom:14px;
+    width:188px;
+    min-height:46px;
+    padding:13px 10px 8px;
+    justify-content:flex-start;
+    gap:9px;
+    border:0;
+    border-top:1px solid var(--line);
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+    color:#667a72;
+  }
+  .global-logout span{
+    width:20px;
+    font-size:17px;
+    line-height:1;
+    display:grid;
+    place-items:center;
+    color:#71847c;
+  }
+  .global-logout strong{
+    font-size:11px;
+    font-weight:700;
+  }
+  .global-logout:hover{
+    background:var(--mint);
+    color:var(--green-dark);
+    border-radius:10px;
+    border-top-color:transparent;
+  }
+  .global-logout:hover span{color:var(--green-dark)}
+}

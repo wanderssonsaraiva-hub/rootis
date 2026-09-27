@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- ROOTIS V9 -->
+<!-- ROOTIS V10 -->
 
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Rootis v9 | Agenda Pessoal</title>
+<title>Rootis v10 | Agenda Pessoal</title>
 <link href="style.css" rel="stylesheet"/>
 </head>
 <body>
@@ -28,7 +28,6 @@
         <button class="btn btn-primary auth-main-button" type="submit">Entrar</button>
       </form>
       <div class="auth-switch">Não tem uma conta? <button class="auth-text-button" id="openRegister" type="button">Criar conta</button></div>
-      <button class="auth-demo-button" id="fillDemoDentist" type="button">Usar acesso de demonstração do dentista</button>
     </div>
 
     <div class="auth-view" id="authRegisterView">
@@ -80,11 +79,7 @@
       </form>
       <div class="auth-switch"><button class="auth-text-button" data-auth-login type="button">← Voltar para entrar</button></div>
     </div>
-
-    <div class="auth-local-note">
-      <strong>Versão local v9.</strong> O fluxo de código está pronto para integração. Enquanto não houver servidor, o código de teste aparece na própria tela.
-    </div>
-    <div class="auth-footer">www.rootins.com.br</div>
+    <div class="auth-footer">www.rootis.com.br</div>
   </div>
 </section>
 <div class="app">
@@ -114,7 +109,7 @@
 <div class="central-count"><span>Dentistas cadastrados</span><strong id="dentistCount">1</strong></div>
 </div>
 <div class="admin-platform-stats">
-  <div class="card admin-platform-stat"><span>Associados</span><strong id="adminAssociatedDentists">0</strong><small>dentistas cadastrados</small></div>
+  <div class="card admin-platform-stat admin-associates-card"><span>Associados</span><button class="admin-associates-number" id="adminAssociatedDentistsTrigger" type="button" aria-expanded="false" aria-controls="adminAssociatedDentistNames" title="Ver dentistas associados"><strong id="adminAssociatedDentists">0</strong></button><small>dentistas cadastrados</small><div class="admin-associates-list" id="adminAssociatedDentistNames" hidden></div></div>
   <div class="card admin-platform-stat"><span>Pacientes na plataforma</span><strong id="adminPatientsTotal">0</strong><small>somados entre os associados</small></div>
   <div class="card admin-platform-stat"><span>Faturamento dos associados</span><strong id="adminRevenueTotal">R$ 0,00</strong><small>total recebido registrado</small></div>
 </div>
@@ -146,11 +141,11 @@
 <div class="panel-head"><div><h3>Dentistas associados ao Rootis</h3><p>Acompanhe cadastro, pacientes e faturamento de cada profissional</p></div><span class="active-pill">VISÃO GERAL</span></div>
 <div class="dentist-list" id="dentistList"></div>
 </div>
-<div class="central-security-note"><strong>Controle de acesso:</strong> esta área é exclusiva da conta proprietária. Dentistas associados não recebem a aba Administrador. Na publicação em <strong>www.rootins.com.br</strong>, a mesma regra deverá ser validada também no servidor e no banco de dados.</div>
+<div class="central-security-note"><strong>Controle de acesso:</strong> esta área é exclusiva da conta proprietária. Dentistas associados não recebem a aba Administrador. Na publicação em <strong>www.rootis.com.br</strong>, a mesma regra deverá ser validada também no servidor e no banco de dados.</div>
 </section>
 
 <section class="page active" id="dashboard">
-<div class="welcome"><div><span class="eyebrow">ROOTIS · AGENDA PESSOAL</span><h2 id="welcomeDentist">Bom dia, Dra. Carla Matos. Aqui está sua agenda de hoje.</h2><p>Atendimentos, horários e confirmações em um só lugar.</p></div><button class="btn btn-ghost" data-go="agenda">Abrir agenda</button></div>
+<div class="welcome"><div><span class="eyebrow">ROOTIS · AGENDA PESSOAL</span><h2 id="welcomeDentist">Olá, Dra. Carla Matos. Aqui está sua agenda de hoje.</h2><p>Atendimentos, horários e confirmações em um só lugar.</p></div><button class="btn btn-ghost" data-go="agenda">Abrir agenda</button></div>
 <div class="stats">
 <div class="card stat"><span>Pacientes hoje</span><strong id="statToday">4</strong><small>3 confirmados</small></div>
 <div class="card stat"><span>Próximo horário</span><strong id="nextApptTime">—</strong><small id="nextApptName">Sem próximo atendimento</small></div>

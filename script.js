@@ -5,42 +5,30 @@ function whatsappFieldValue(value){return localWhatsappDigits(value)}
 const ROOTIS_DENTISTS_KEY='rootisDentistsV2';
 const ROOTIS_ACTIVE_DENTIST_KEY='rootisActiveDentistIdV2';
 const DEFAULT_DENTIST_ID='wandersson-saraiva';
-const CARLA_DENTIST_ID='carla-matos-demo';
-const ROOTIS_SESSION_USER_KEY='rootisSessionUserIdV9';
-const ROOTIS_ACCOUNTS_KEY='rootisAccountsV9';
-const ROOTIS_DOMAIN='https://www.rootins.com.br';
-const ROOTIS_OWNER_EMAIL='saraivawandersson@gmail.com';
-const ROOTIS_OWNER_PHONE='98981452365';
-const ROOTIS_DEMO_EMAIL='dentista@rootins.com.br';
-const ROOTIS_OWNER_PASSWORD_HASH='62e6aa3e';
-const ROOTIS_DEMO_PASSWORD_HASH='3f0d9671';
-function rootisLocalHash(value){let h=2166136261;for(const ch of String(value||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h.toString(16).padStart(8,'0')}
-function loadAuthAccounts(){
-  let list=[];try{const raw=JSON.parse(localStorage.getItem(ROOTIS_ACCOUNTS_KEY)||'[]');if(Array.isArray(raw))list=raw}catch(e){}
-  const existingOwner=list.find(a=>a&&a.userId===DEFAULT_DENTIST_ID),existingDemo=list.find(a=>a&&a.userId===CARLA_DENTIST_ID);
-  const owner={userId:DEFAULT_DENTIST_ID,role:'owner',name:'Dr. Wandersson Saraiva',email:ROOTIS_OWNER_EMAIL,phone:ROOTIS_OWNER_PHONE,passwordHash:existingOwner?.passwordHash||ROOTIS_OWNER_PASSWORD_HASH,verified:true,...existingOwner,email:ROOTIS_OWNER_EMAIL,phone:ROOTIS_OWNER_PHONE,role:'owner'};
-  const demo={userId:CARLA_DENTIST_ID,role:'dentist',name:'Dra. Carla Matos',email:ROOTIS_DEMO_EMAIL,phone:'11999991234',passwordHash:existingDemo?.passwordHash||ROOTIS_DEMO_PASSWORD_HASH,verified:true,isDemo:true,...existingDemo,email:ROOTIS_DEMO_EMAIL,role:'dentist'};
-  const others=list.filter(a=>a&&a.userId!==DEFAULT_DENTIST_ID&&a.userId!==CARLA_DENTIST_ID);list=[owner,demo,...others];localStorage.setItem(ROOTIS_ACCOUNTS_KEY,JSON.stringify(list));return list
-}
-let authAccounts=loadAuthAccounts();
-function saveAuthAccounts(){localStorage.setItem(ROOTIS_ACCOUNTS_KEY,JSON.stringify(authAccounts))}
-function accountByUserId(id){return authAccounts.find(a=>a.userId===id)||null}
-function accountByLogin(value){const raw=String(value||'').trim(),email=raw.toLowerCase(),phone=whatsappFieldValue(raw);return authAccounts.find(a=>String(a.email||'').toLowerCase()===email||(phone&&String(a.phone||'')===phone))||null}
-let sessionUserId=localStorage.getItem(ROOTIS_SESSION_USER_KEY)||'';
-const isPlatformOwner=()=>sessionUserId===DEFAULT_DENTIST_ID;
-const defaultDentist={id:DEFAULT_DENTIST_ID,name:'Dr. Wandersson Saraiva',cro:'8240',specialty:'Implantes e Endodontia',clinic:'Rootis',whatsapp:ROOTIS_OWNER_PHONE,email:ROOTIS_OWNER_EMAIL,pixKey:'',pixReceiver:'',cardPaymentLink:'',createdAt:'2026-09-25'};
-const carlaDemoDentist={id:CARLA_DENTIST_ID,name:'Dra. Carla Matos',cro:'CRO-SP 12345',specialty:'Endodontia e Dentística',clinic:'Clínica Carla Matos',whatsapp:'11999991234',email:'carla.matos@exemplo.com',pixKey:'carla.matos@exemplo.com',pixReceiver:'Dra. Carla Matos',cardPaymentLink:'',createdAt:'2026-09-25',isDemo:true};
-let dentists=JSON.parse(localStorage.getItem(ROOTIS_DENTISTS_KEY)||'null')||[defaultDentist,carlaDemoDentist];
-if(!Array.isArray(dentists)||!dentists.length)dentists=[defaultDentist,carlaDemoDentist];
+const LEGACY_DEMO_DENTIST_ID='carla-matos-demo';
+const ROOTIS_DOMAIN='https://www.rootis.com.br';
+const ROOTIS_API_BASE=location.protocol==='file:'?`${ROOTIS_DOMAIN}/api`:'/api';
+
+// Segurança V10: nenhuma senha, hash de senha, e-mail administrativo ou telefone
+// de recuperação fica armazenado no JavaScript ou no localStorage. A autenticação
+// é validada exclusivamente pelo backend e a sessão usa cookie HttpOnly.
+localStorage.removeItem('rootisAccountsV10');
+localStorage.removeItem('rootisSessionUserIdV10');
+let currentAuthAccount=null;
+let sessionUserId='';
+const isPlatformOwner=()=>currentAuthAccount?.role==='owner';
+
+const defaultDentist={id:DEFAULT_DENTIST_ID,name:'Dr. Wandersson Saraiva',cro:'8240',specialty:'Implantes e Endodontia',clinic:'Rootis',whatsapp:'',email:'',pixKey:'',pixReceiver:'',cardPaymentLink:'',createdAt:'2026-09-25'};
+let dentists=JSON.parse(localStorage.getItem(ROOTIS_DENTISTS_KEY)||'null')||[defaultDentist];
+if(!Array.isArray(dentists)||!dentists.length)dentists=[defaultDentist];
+dentists=dentists.filter(d=>d&&d.id!==LEGACY_DEMO_DENTIST_ID&&!d.isDemo);
 if(!dentists.some(d=>d.id===DEFAULT_DENTIST_ID))dentists.unshift(defaultDentist);
-if(!dentists.some(d=>d.id===CARLA_DENTIST_ID))dentists.push(carlaDemoDentist);
 dentists=dentists.map(d=>({...d,whatsapp:whatsappFieldValue(d.whatsapp),pixKey:d.pixKey||'',pixReceiver:d.pixReceiver||'',cardPaymentLink:d.cardPaymentLink||''}));
-dentists=dentists.map(d=>d.id===DEFAULT_DENTIST_ID?{...d,email:ROOTIS_OWNER_EMAIL,whatsapp:ROOTIS_OWNER_PHONE}:d);
 localStorage.setItem(ROOTIS_DENTISTS_KEY,JSON.stringify(dentists));
-let activeDentistId=localStorage.getItem(ROOTIS_ACTIVE_DENTIST_KEY)||CARLA_DENTIST_ID;
+let activeDentistId=localStorage.getItem(ROOTIS_ACTIVE_DENTIST_KEY)||DEFAULT_DENTIST_ID;
 if(sessionUserId&&!isPlatformOwner()&&dentists.some(d=>d.id===sessionUserId))activeDentistId=sessionUserId;
-if(!dentists.some(d=>d.id===activeDentistId)){activeDentistId=CARLA_DENTIST_ID;localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,activeDentistId)}
-let activeDentist=dentists.find(d=>d.id===activeDentistId)||carlaDemoDentist;
+if(!dentists.some(d=>d.id===activeDentistId)){activeDentistId=DEFAULT_DENTIST_ID;localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,activeDentistId)}
+let activeDentist=dentists.find(d=>d.id===activeDentistId)||defaultDentist;
 const dentistKey=(suffix,id=activeDentistId)=>`rootisDentist_${id}_${suffix}`;
 function migrateLegacy(){
   if(activeDentistId!==DEFAULT_DENTIST_ID)return;
@@ -50,25 +38,11 @@ function migrateLegacy(){
 }
 migrateLegacy();
 
-const seedAppointments=[
- {name:'Mariana Souza',phone:'11999990000',time:'08:00',end:'11:00',slotStart:'08:00',slotEnd:'11:00',date:'2026-09-25',status:'Confirmado',paymentStatus:'Pago'},
- {name:'Lucas Martins',phone:'11988881111',time:'12:00',end:'15:00',slotStart:'12:00',slotEnd:'15:00',date:'2026-09-25',status:'Confirmado',paymentStatus:'Pago'},
- {name:'Ana Ferreira',phone:'11977772222',time:'16:00',end:'19:00',slotStart:'16:00',slotEnd:'19:00',date:'2026-09-25',status:'Aguardando pagamento',paymentStatus:'Aguardando pagamento'},
- {name:'Carlos Mendes',phone:'11966663333',time:'08:00',end:'11:00',slotStart:'08:00',slotEnd:'11:00',date:'2026-09-28',status:'Aguardando pagamento',paymentStatus:'Aguardando pagamento'},
- {name:'Juliana Rocha',phone:'',time:'12:00',end:'15:00',slotStart:'12:00',slotEnd:'15:00',date:'2026-09-28',status:'Confirmado',paymentStatus:'Pago'},
- {name:'Rafael Nunes',phone:'',time:'16:00',end:'19:00',slotStart:'16:00',slotEnd:'19:00',date:'2026-09-30',status:'Confirmado',paymentStatus:'Pago'}
-];
-const seedPatients=[
- {name:'Mariana Souza',phone:'11999990000',last:'25/09/2026',next:'02/10 · 10:00'},
- {name:'Lucas Martins',phone:'11988881111',last:'24/09/2026',next:'—'},
- {name:'Ana Ferreira',phone:'11977772222',last:'23/09/2026',next:'30/09 · 11:00'},
- {name:'Carlos Mendes',phone:'11966663333',last:'20/09/2026',next:'01/10 · 14:00'}
-];
 let appointments=JSON.parse(localStorage.getItem(dentistKey('AppointmentsV1'))||'null');
-if(!appointments)appointments=activeDentistId===CARLA_DENTIST_ID?seedAppointments.map(a=>({...a})):[];
+if(!appointments)appointments=[];
 appointments=appointments.map((a,i)=>({...a,phone:whatsappFieldValue(a.phone),id:a.id||`appt-${String(a.date||'').replace(/\D/g,'')}-${String(a.time||'').replace(/\D/g,'')}-${i}`,paymentAmount:Number(a.paymentAmount??((a.status==='Confirmado'&&a.paymentStatus==='Pago')?(localStorage.getItem(dentistKey('PaymentAmount'))||100):0))||0}));
 let patients=JSON.parse(localStorage.getItem(dentistKey('PatientsV1'))||'null');
-if(!patients)patients=activeDentistId===CARLA_DENTIST_ID?seedPatients.map(p=>({...p})):[];
+if(!patients)patients=[];
 const defaultChargeForPatient=()=>Math.max(0,Number(localStorage.getItem(dentistKey('PaymentAmount'))||100)||0);
 function patientAppointmentRecords(name){return appointments.filter(a=>String(a.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase())}
 function inferPatientPaid(name){return patientAppointmentRecords(name).filter(a=>a.status==='Confirmado'&&a.paymentStatus==='Pago').reduce((sum,a)=>sum+(Number(a.paymentAmount)||0),0)}
@@ -95,11 +69,26 @@ function persistPatients(){localStorage.setItem(dentistKey('PatientsV1'),JSON.st
 function ledgerToday(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 let paymentLedger=[];
 function persistPaymentLedger(){localStorage.setItem(dentistKey('PaymentLedgerV1'),JSON.stringify(paymentLedger))}
+let billingLedger=[];
+function persistBillingLedger(){localStorage.setItem(dentistKey('BillingLedgerV1'),JSON.stringify(billingLedger))}
 function patientForLedgerName(name){return patients.find(p=>String(p.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase())||null}
 function ledgerEntriesForPatient(p){if(!p)return[];return paymentLedger.filter(e=>String(e.patientId||'')===String(p.id||'')||(!e.patientId&&String(e.patientName||'').trim().toLowerCase()===String(p.name||'').trim().toLowerCase()))}
 function ledgerTotalForPatient(p){return Math.max(0,ledgerEntriesForPatient(p).reduce((sum,e)=>sum+(Number(e.amount)||0),0))}
 function ledgerTotalAll(){return paymentLedger.reduce((sum,e)=>sum+(Number(e.amount)||0),0)}
 function ledgerMonthTotal(key){return paymentLedger.filter(e=>revenueMonthKey(e.date)===key).reduce((sum,e)=>sum+(Number(e.amount)||0),0)}
+function billingEntriesForPatient(p){if(!p)return[];return billingLedger.filter(e=>String(e.patientId||'')===String(p.id||'')||(!e.patientId&&String(e.patientName||'').trim().toLowerCase()===String(p.name||'').trim().toLowerCase()))}
+function billingTotalForPatient(p){return Math.max(0,billingEntriesForPatient(p).reduce((sum,e)=>sum+(Number(e.amount)||0),0))}
+function billingTotalAll(){return billingLedger.reduce((sum,e)=>sum+(Number(e.amount)||0),0)}
+function billingMonthTotal(key){return billingLedger.filter(e=>revenueMonthKey(e.date)===key).reduce((sum,e)=>sum+(Number(e.amount)||0),0)}
+function billingReferenceDateForPatient(p){
+  const dates=[...(Array.isArray(p?.treatments)?p.treatments:[]).map(t=>t.date),...patientAppointmentRecords(p?.name).map(a=>a.date)].filter(Boolean).sort();
+  return dates.length?dates[dates.length-1]:ledgerToday();
+}
+function adjustPatientBilledLedger(p,target,date=ledgerToday(),label='Valor registrado do paciente'){
+  if(!p)return;const wanted=Math.max(0,Number(target)||0),current=billingEntriesForPatient(p).reduce((sum,e)=>sum+(Number(e.amount)||0),0),delta=wanted-current;
+  if(Math.abs(delta)>0.005){billingLedger.push({id:`billing:${p.id}:${Date.now()}:${Math.random().toString(36).slice(2,6)}`,date:date||ledgerToday(),amount:delta,patientId:p.id,patientName:p.name||'Paciente',source:'billing',label:delta>=0?label:'Correção de valor registrado',createdAt:new Date().toISOString()});persistBillingLedger()}
+}
+function renamePatientInBillingLedger(p,newName){if(!p)return;let changed=false;billingLedger.forEach(e=>{if(String(e.patientId||'')===String(p.id||'')||String(e.patientName||'').trim().toLowerCase()===String(p.name||'').trim().toLowerCase()){e.patientId=p.id;e.patientName=newName;changed=true}});if(changed)persistBillingLedger()}
 function syncAppointmentPaymentLedger(a){
   if(!a||!a.id)return;const id=`appointment:${a.id}`,idx=paymentLedger.findIndex(e=>e.id===id),isPaid=a.status==='Confirmado'&&a.paymentStatus==='Pago'&&(Number(a.paymentAmount)||0)!==0;
   if(isPaid){const p=patientForLedgerName(a.name),entry={id,date:a.date||ledgerToday(),amount:Number(a.paymentAmount)||0,patientId:p?.id||'',patientName:a.name||'Paciente',source:'appointment',label:'Pagamento de atendimento',appointmentId:a.id,updatedAt:new Date().toISOString()};if(idx>=0)paymentLedger[idx]={...paymentLedger[idx],...entry};else paymentLedger.push(entry)}else if(idx>=0){paymentLedger.splice(idx,1)}
@@ -115,8 +104,14 @@ function adjustPatientPaidLedger(p,target){
   if(!p)return;const wanted=Math.max(0,Number(target)||0),current=ledgerEntriesForPatient(p).reduce((sum,e)=>sum+(Number(e.amount)||0),0),delta=wanted-current;if(Math.abs(delta)>0.005){paymentLedger.push({id:`adjustment:${p.id}:${Date.now()}`,date:ledgerToday(),amount:delta,patientId:p.id,patientName:p.name||'Paciente',source:'manual',label:delta>=0?'Pagamento lançado manualmente':'Correção de pagamento',createdAt:new Date().toISOString()});persistPaymentLedger()}
 }
 function renamePatientInLedger(p,newName){if(!p)return;let changed=false;paymentLedger.forEach(e=>{if(String(e.patientId||'')===String(p.id||'')||String(e.patientName||'').trim().toLowerCase()===String(p.name||'').trim().toLowerCase()){e.patientId=p.id;e.patientName=newName;changed=true}});if(changed)persistPaymentLedger()}
+function bootstrapBillingLedger(){
+  const raw=JSON.parse(localStorage.getItem(dentistKey('BillingLedgerV1'))||'null');
+  if(Array.isArray(raw)){billingLedger=raw;return}
+  billingLedger=[];patients.forEach(p=>{const target=patientFinancialRegistered(p);if(target>0)billingLedger.push({id:`billing-opening:${p.id}`,date:billingReferenceDateForPatient(p),amount:target,patientId:p.id,patientName:p.name||'Paciente',source:'opening',label:'Valor registrado já existente',createdAt:new Date().toISOString()})});persistBillingLedger();
+}
 bootstrapPaymentLedger();
 patients.forEach(p=>{const ledgerPaid=ledgerTotalForPatient(p);if(ledgerEntriesForPatient(p).length)p.amountPaid=ledgerPaid;const treatmentTotal=patientTreatmentTotal(p);p.amountDue=Math.max(Number(p.amountDue)||0,Number(p.amountPaid)||0,treatmentTotal);p.treatmentChargeTotal=treatmentTotal});persistPatients();
+bootstrapBillingLedger();
 function upsertPatient(booking){
   if(!booking.name)return;
   let p=patients.find(x=>x.name.toLowerCase()===String(booking.name).toLowerCase());
@@ -132,11 +127,12 @@ function upsertPatient(booking){
     if(p.amountDue===undefined)p.amountDue=inferPatientDue(p.name);
     if(p.amountPaid===undefined)p.amountPaid=inferPatientPaid(p.name);
   }
+  adjustPatientBilledLedger(p,patientFinancialRegistered(p),booking.date||ledgerToday(),'Atendimento registrado');
   persistPatients();
 }
 function refreshPatientFinancialMinimums(name){
   const p=patients.find(x=>String(x.name||'').toLowerCase()===String(name||'').toLowerCase());if(!p)return;
-  const paid=ledgerTotalForPatient(p);p.amountPaid=paid;p.amountDue=Math.max(Number(p.amountDue)||0,p.amountPaid);persistPatients();
+  const paid=ledgerTotalForPatient(p);p.amountPaid=paid;p.amountDue=Math.max(Number(p.amountDue)||0,p.amountPaid);adjustPatientBilledLedger(p,patientFinancialRegistered(p),ledgerToday());persistPatients();
 }
 
 const title=document.getElementById('title'),subtitle=document.getElementById('subtitle');
@@ -168,12 +164,12 @@ updateMobileNavigation(currentPageId);
 function initials(name){return String(name||'D').replace(/Dr(a)?\.?/gi,'').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'D'}
 function profileMeta(d){return [d.cro,d.specialty,d.clinic].filter(Boolean).join(' · ')||'Dentista administrador'}
 function moneyBR(value){return Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-function appToday(){return activeDentistId===CARLA_DENTIST_ID?'2026-09-25':isoToday()}
+function appToday(){return isoToday()}
 function paidRevenueAppointments(){return appointments.filter(a=>a.status==='Confirmado'&&a.paymentStatus==='Pago'&&(Number(a.paymentAmount)||0)>0)}
 function revenueMonthKey(date){const parts=String(date||'').split('-');return parts.length>=2?`${parts[0]}-${parts[1]}`:''}
 function revenueMonthLabel(key){if(!key)return'—';const [y,m]=key.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}
 function currentRevenueMonthKey(){return revenueMonthKey(appToday())}
-function revenueForMonth(key){return ledgerMonthTotal(key)}
+function revenueForMonth(key){return billingMonthTotal(key)}
 function getMonthlyGoal(){const saved=localStorage.getItem(dentistKey('MonthlyGoal'));return Math.max(0,Number(saved===null?5000:saved)||0)}
 function currentMonthRevenue(){
   const key=currentRevenueMonthKey();
@@ -200,7 +196,7 @@ function saveMonthlyGoal(){
 }
 function renderDentistUI(){
   document.getElementById('sidebarDentistName').textContent=activeDentist.name;document.getElementById('sidebarDentistInitials').textContent=initials(activeDentist.name);
-  document.getElementById('welcomeDentist').textContent=`Bom dia, ${activeDentist.name}. Aqui está sua agenda de hoje.`;
+  document.getElementById('welcomeDentist').textContent=`Olá, ${activeDentist.name}. Aqui está sua agenda de hoje.`;
   document.getElementById('dentistReminderTitle').textContent=`Dentista · ${activeDentist.name}`;
   document.title=`Rootis | ${activeDentist.name}`;
   const wh=document.getElementById('dentistWhatsapp');if(wh&&!wh.value&&activeDentist.whatsapp)wh.value=activeDentist.whatsapp;
@@ -224,17 +220,20 @@ function populateProfileDentistForm(){
   if(help)help.textContent=ownerProfile?'Este cadastro principal é protegido e não pode ser excluído por esta tela.':'Ao excluir o cadastro, os dados locais desta agenda serão removidos deste navegador.';
 }
 function storedJson(key,fallback){try{const value=JSON.parse(localStorage.getItem(key)||'null');return value??fallback}catch(e){return fallback}}
-function platformPatientsForDentist(id){if(id===activeDentistId)return patients.length;const stored=storedJson(dentistKey('PatientsV1',id),null);if(Array.isArray(stored))return stored.length;if(id===CARLA_DENTIST_ID)return seedPatients.length;return 0}
+function platformPatientsForDentist(id){if(id===activeDentistId)return patients.length;const stored=storedJson(dentistKey('PatientsV1',id),null);if(Array.isArray(stored))return stored.length;return 0}
 function platformRevenueForDentist(id){
   if(id===activeDentistId)return ledgerTotalAll();
   const ledger=storedJson(dentistKey('PaymentLedgerV1',id),null);if(Array.isArray(ledger))return ledger.reduce((sum,e)=>sum+(Number(e.amount)||0),0);
-  const appts=storedJson(dentistKey('AppointmentsV1',id),id===CARLA_DENTIST_ID?seedAppointments:[]);return Array.isArray(appts)?appts.filter(a=>a.status==='Confirmado'&&a.paymentStatus==='Pago').reduce((sum,a)=>sum+(Number(a.paymentAmount)||defaultChargeForPatient()||0),0):0
+  const appts=storedJson(dentistKey('AppointmentsV1',id),[]);return Array.isArray(appts)?appts.filter(a=>a.status==='Confirmado'&&a.paymentStatus==='Pago').reduce((sum,a)=>sum+(Number(a.paymentAmount)||defaultChargeForPatient()||0),0):0
 }
 function renderDentistCentral(){
   const associates=dentists.filter(d=>d.id!==DEFAULT_DENTIST_ID);
   const count=document.getElementById('dentistCount');if(count)count.textContent=associates.length;
   const patientTotal=associates.reduce((sum,d)=>sum+platformPatientsForDentist(d.id),0),revenueTotal=associates.reduce((sum,d)=>sum+platformRevenueForDentist(d.id),0);
   const assocEl=document.getElementById('adminAssociatedDentists'),patientsEl=document.getElementById('adminPatientsTotal'),revenueEl=document.getElementById('adminRevenueTotal');if(assocEl)assocEl.textContent=associates.length;if(patientsEl)patientsEl.textContent=patientTotal;if(revenueEl)revenueEl.textContent=moneyBR(revenueTotal);
+  const assocTrigger=document.getElementById('adminAssociatedDentistsTrigger'),assocNames=document.getElementById('adminAssociatedDentistNames');
+  if(assocNames)assocNames.innerHTML=associates.length?associates.map(d=>`<div class="admin-associate-name">${escapeHtml(d.name||'Dentista')}</div>`).join(''):'<div class="admin-associate-empty">Nenhum dentista associado.</div>';
+  if(assocTrigger&&assocNames){assocTrigger.onclick=()=>{const willOpen=assocNames.hidden;assocNames.hidden=!willOpen;assocTrigger.setAttribute('aria-expanded',willOpen?'true':'false')}}
   const active=document.getElementById('activeDentistCard');if(active)active.innerHTML=`<div class="central-dentist-profile"><div class="central-avatar">${initials(activeDentist.name)}</div><div><h4>${activeDentist.name}</h4><p>${profileMeta(activeDentist)}</p><p>${activeDentist.whatsapp||'WhatsApp ainda não informado'}${activeDentist.email?` · ${activeDentist.email}`:''}</p><p>${activeDentist.pixKey?'PIX cadastrado':'PIX não cadastrado'} · ${activeDentist.cardPaymentLink?'Cartão cadastrado':'Link de cartão não cadastrado'}</p></div></div>`;
   const list=document.getElementById('dentistList');if(!list)return;
   list.innerHTML=dentists.map(d=>{const pc=platformPatientsForDentist(d.id),rv=platformRevenueForDentist(d.id);return `<div class="dentist-item ${d.id===activeDentistId?'active-dentist':''}"><div class="dentist-item-avatar">${initials(d.name)}</div><div><strong>${d.name}</strong><small>${profileMeta(d)}</small>${d.id===DEFAULT_DENTIST_ID?'<small class="owner-inline">Proprietário da plataforma</small>':''}<div class="dentist-platform-metrics"><span>${pc} ${pc===1?'paciente':'pacientes'}</span><span class="money">${moneyBR(rv)} recebido</span></div></div><div class="dentist-item-actions">${d.id===activeDentistId?'<button type="button" disabled>Agenda ativa</button>':`<button type="button" class="open-dentist" data-open-dentist="${d.id}">Abrir agenda</button>`}<button type="button" class="edit-dentist" data-edit-dentist="${d.id}">Editar perfil</button><button type="button" class="remove-dentist" data-remove-dentist="${d.id}" ${d.id===DEFAULT_DENTIST_ID?'disabled':''}>Excluir</button></div></div>`}).join('');
@@ -246,8 +245,8 @@ function removeDentist(id){
   const d=dentists.find(x=>x.id===id);if(!d||id===DEFAULT_DENTIST_ID)return toast('A conta proprietária da plataforma é protegida.');
   if(!confirm(`Excluir o perfil de ${d.name}? Os dados locais desta agenda também serão apagados neste navegador.`))return;
   Object.keys(localStorage).filter(k=>k.startsWith(`rootisDentist_${id}_`)).forEach(k=>localStorage.removeItem(k));
-  dentists=dentists.filter(x=>x.id!==id);saveDentists();authAccounts=authAccounts.filter(a=>a.userId!==id);saveAuthAccounts();
-  if(activeDentistId===id){const fallback=dentists.some(x=>x.id===CARLA_DENTIST_ID)?CARLA_DENTIST_ID:DEFAULT_DENTIST_ID;localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,fallback);sessionStorage.setItem('rootisOpenPageAfterReload','administrador');location.reload();return}
+  dentists=dentists.filter(x=>x.id!==id);saveDentists();secureDeleteAccount(id).catch(()=>{});
+  if(activeDentistId===id){localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,DEFAULT_DENTIST_ID);sessionStorage.setItem('rootisOpenPageAfterReload','administrador');location.reload();return}
   renderDentistCentral();toast('Dentista removido da plataforma.');
 }
 const dentistForm=document.getElementById('dentistForm');
@@ -257,7 +256,7 @@ if(profileDentistForm)profileDentistForm.addEventListener('submit',e=>{
   e.preventDefault();const f=new FormData(e.target);const name=String(f.get('name')||'').trim();if(!name)return;
   const whatsapp=whatsappFieldValue(f.get('whatsapp'));if(whatsapp&&!validLocalWhatsapp(whatsapp)){toast('O WhatsApp do dentista deve ter exatamente 11 números, por exemplo 98981452367.');return}
   const patch={name,cro:String(f.get('cro')||'').trim(),specialty:String(f.get('specialty')||'').trim(),clinic:String(f.get('clinic')||'').trim(),whatsapp,email:String(f.get('email')||'').trim()};
-  activeDentist={...activeDentist,...patch};dentists=dentists.map(d=>d.id===activeDentistId?{...d,...patch}:d);saveDentists();if(activeDentistId!==DEFAULT_DENTIST_ID){authAccounts=authAccounts.map(a=>a.userId===activeDentistId?{...a,name:patch.name,email:patch.email||a.email,phone:patch.whatsapp||a.phone}:a);saveAuthAccounts()}
+  activeDentist={...activeDentist,...patch};dentists=dentists.map(d=>d.id===activeDentistId?{...d,...patch}:d);saveDentists();secureUpdateAccountProfile(activeDentistId,patch).catch(()=>{})
   const dentistWhats=document.getElementById('dentistWhatsapp');if(dentistWhats)dentistWhats.value=activeDentist.whatsapp||'';
   renderDentistUI();renderDentistCentral();renderToday();renderPatients(patientSearch?.value||'');renderCalendar();renderAvailable(selectedDate);renderConfirmations();renderDentistFinancialSummary();refreshPatientLink();toast('Cadastro profissional atualizado em todo o Rootis.');
 });
@@ -323,6 +322,10 @@ let selectedPatientIndex=0;
 let creatingPatient=false;
 function patientFinancialOpen(p){return Math.max(0,(Number(p?.amountDue)||0)-(Number(p?.amountPaid)||0))}
 function patientTreatmentTotal(p){return (Array.isArray(p?.treatments)?p.treatments:[]).reduce((sum,t)=>sum+(Number(t.amount)||0),0)}
+function patientFinancialRegistered(p){
+  if(!p)return 0;const due=Math.max(0,Number(p.amountDue)||0),paid=Math.max(0,Number(p.amountPaid)||0),open=Math.max(0,due-paid),treatments=patientTreatmentTotal(p);
+  return Math.max(due,paid+open,treatments);
+}
 function syncPatientTreatmentCharges(p,previousTotal=null){
   if(!p)return;
   const current=patientTreatmentTotal(p),previous=previousTotal===null?Number(p.treatmentChargeTotal||0):Number(previousTotal||0),delta=current-previous;
@@ -330,7 +333,8 @@ function syncPatientTreatmentCharges(p,previousTotal=null){
   p.treatmentChargeTotal=current;
 }
 function updatePatientOpenField(){
-  const due=Number(document.getElementById('patientEditDue')?.value||0),paid=Number(document.getElementById('patientEditPaid')?.value||0),open=Math.max(0,due-paid),out=document.getElementById('patientEditOpen');if(out)out.value=open.toFixed(2);
+  const due=Math.max(0,Number(document.getElementById('patientEditDue')?.value||0)),paid=Math.max(0,Number(document.getElementById('patientEditPaid')?.value||0)),open=Math.max(0,due-paid),out=document.getElementById('patientEditOpen');if(out)out.value=open.toFixed(2);
+  const total=document.getElementById('patientTreatmentTotal'),p=selectedPatient(),treatments=p?patientTreatmentTotal(p):0;if(total)total.textContent=moneyBR(Math.max(due,paid+open,treatments));
 }
 function setPatientEditorDisabled(disabled){
   ['patientNewAppointment','patientChargeButton','openClinicalReport','deletePatient','patientTreatmentAdd'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!!disabled});
@@ -374,14 +378,14 @@ function renderPatientTreatments(p=selectedPatient()){
   }
   if(add)add.disabled=false;
   const items=[...treatmentList(p)].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
-  total.textContent=moneyBR(items.reduce((sum,t)=>sum+(Number(t.amount)||0),0));
+  total.textContent=moneyBR(patientFinancialRegistered(p));
   history.innerHTML=items.length?items.map(t=>`<article class="patient-treatment-item">
     <div class="patient-treatment-date"><span>${escapeHtml(t.date?brDate(t.date):'Sem data')}</span><small>Dente</small><strong>${escapeHtml(t.tooth||'—')}</strong></div>
     <div class="patient-treatment-main"><div class="patient-treatment-tags"><span>${escapeHtml(t.type||'Outro')}</span></div><strong>${escapeHtml(t.description||'Tratamento odontológico')}</strong><small>Valor cobrado: <b>${moneyBR(Number(t.amount)||0)}</b></small></div>
     <div class="patient-treatment-actions"><button class="linkbtn treatment-edit-btn" data-treatment-id="${escapeHtml(t.id)}" type="button">Editar</button><button class="linkbtn treatment-delete-btn danger-link" data-treatment-id="${escapeHtml(t.id)}" type="button">Excluir</button></div>
   </article>`).join(''):'<div class="patient-treatment-empty"><strong>Nenhum tratamento registrado</strong><p>Clique em “Adicionar tratamento” para começar o histórico deste paciente.</p></div>';
   history.querySelectorAll('.treatment-edit-btn').forEach(btn=>btn.onclick=()=>{const t=treatmentList(p).find(x=>String(x.id)===String(btn.dataset.treatmentId));if(t)openTreatmentEditor(t)});
-  history.querySelectorAll('.treatment-delete-btn').forEach(btn=>btn.onclick=()=>{const list=treatmentList(p),idx=list.findIndex(x=>String(x.id)===String(btn.dataset.treatmentId));if(idx<0)return;const t=list[idx];if(!confirm(`Excluir o tratamento do dente ${t.tooth||'informado'}?`))return;const previousTotal=patientTreatmentTotal(p);list.splice(idx,1);syncPatientTreatmentCharges(p,previousTotal);persistPatients();closeTreatmentEditor();renderSelectedPatient();renderPatientOverview();toast('Tratamento excluído e financeiro do paciente atualizado.');});
+  history.querySelectorAll('.treatment-delete-btn').forEach(btn=>btn.onclick=()=>{const list=treatmentList(p),idx=list.findIndex(x=>String(x.id)===String(btn.dataset.treatmentId));if(idx<0)return;const t=list[idx];if(!confirm(`Excluir o tratamento do dente ${t.tooth||'informado'}?`))return;const previousTotal=patientTreatmentTotal(p);list.splice(idx,1);syncPatientTreatmentCharges(p,previousTotal);adjustPatientBilledLedger(p,patientFinancialRegistered(p),ledgerToday(),'Tratamento registrado');persistPatients();persistBillingLedger();closeTreatmentEditor();renderSelectedPatient();renderPatientOverview();refreshFinancialViews();toast('Tratamento excluído e financeiro do paciente atualizado.');});
 }
 function renderSelectedPatient(){
   const card=document.getElementById('patientReport');if(!card)return;
@@ -469,11 +473,11 @@ document.getElementById('patientEditorForm')?.addEventListener('submit',e=>{
   const enteredPaid=Math.max(0,Number(f.get('amountPaid'))||0),enteredDue=Math.max(0,Number(f.get('amountDue'))||0),existing=creatingPatient?null:patients[selectedPatientIndex],minimumTreatment=existing?patientTreatmentTotal(existing):0;
   const patch={name,phone,email:String(f.get('email')||'').trim(),address:String(f.get('address')||'').trim(),amountDue:Math.max(enteredDue,enteredPaid,minimumTreatment),amountPaid:enteredPaid,last:String(f.get('last')||'').trim()||'—',next:String(f.get('next')||'').trim()||'—'};
   if(creatingPatient){
-    const created={id:`patient-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`,treatments:[],treatmentChargeTotal:0,...patch};patients.push(created);selectedPatientIndex=patients.length-1;creatingPatient=false;if(patch.amountPaid>0)adjustPatientPaidLedger(created,patch.amountPaid);persistPatients();renderPatients(patientSearch?.value||'');refreshFinancialViews();toast('Paciente cadastrado e financeiro atualizado em todo o Rootis.');
+    const created={id:`patient-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`,treatments:[],treatmentChargeTotal:0,...patch};patients.push(created);selectedPatientIndex=patients.length-1;creatingPatient=false;if(patch.amountPaid>0)adjustPatientPaidLedger(created,patch.amountPaid);adjustPatientBilledLedger(created,patientFinancialRegistered(created),ledgerToday());persistPatients();renderPatients(patientSearch?.value||'');refreshFinancialViews();toast('Paciente cadastrado e financeiro atualizado em todo o Rootis.');
   }else{
-    const p=patients[selectedPatientIndex];if(!p)return;const oldName=p.name;adjustPatientPaidLedger(p,patch.amountPaid);renamePatientInLedger(p,patch.name);patients[selectedPatientIndex]={...p,...patch,amountPaid:ledgerTotalForPatient(p)};
+    const p=patients[selectedPatientIndex];if(!p)return;const oldName=p.name;adjustPatientPaidLedger(p,patch.amountPaid);renamePatientInLedger(p,patch.name);renamePatientInBillingLedger(p,patch.name);const updated={...p,...patch,amountPaid:ledgerTotalForPatient(p)};patients[selectedPatientIndex]=updated;adjustPatientBilledLedger(updated,patientFinancialRegistered(updated),ledgerToday());
     appointments.forEach(a=>{if(String(a.name||'').toLowerCase()===String(oldName||'').toLowerCase()){a.name=patch.name;a.phone=patch.phone;if(patch.email)a.email=patch.email;syncAppointmentPaymentLedger(a)}});
-    persistPatients();persistAppointments();persistPaymentLedger();renderPatients(patientSearch?.value||'');renderToday();renderCalendar();renderAvailable(selectedDate);renderConfirmations();refreshFinancialViews();refreshPatientLink();toast('Dados do paciente, pagamentos e agendamentos atualizados em todo o Rootis.');
+    persistPatients();persistAppointments();persistPaymentLedger();persistBillingLedger();renderPatients(patientSearch?.value||'');renderToday();renderCalendar();renderAvailable(selectedDate);renderConfirmations();refreshFinancialViews();refreshPatientLink();toast('Dados do paciente, pagamentos e agendamentos atualizados em todo o Rootis.');
   }
 });
 document.getElementById('deletePatient')?.addEventListener('click',()=>{
@@ -496,7 +500,7 @@ document.getElementById('patientTreatmentForm')?.addEventListener('submit',e=>{
     list.push({id:`treatment-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`,date,tooth,type,description,amount,createdAt:new Date().toISOString()});
     toast('Tratamento adicionado ao histórico e ao valor do paciente.');
   }
-  syncPatientTreatmentCharges(p,previousTotal);persistPatients();closeTreatmentEditor();renderSelectedPatient();renderPatientOverview();
+  syncPatientTreatmentCharges(p,previousTotal);adjustPatientBilledLedger(p,patientFinancialRegistered(p),date||ledgerToday(),'Tratamento registrado');persistPatients();persistBillingLedger();closeTreatmentEditor();renderSelectedPatient();renderPatientOverview();refreshFinancialViews();
 });
 
 function prefillAppointmentForPatient(){
@@ -519,11 +523,6 @@ const defaultAvailability={0:{open:false,slots:[]},1:{open:true,slots:baseSlots(
 let availability=JSON.parse(localStorage.getItem(dentistKey('AvailabilityV3'))||'null')||JSON.parse(JSON.stringify(defaultAvailability));
 let selectedDate='2026-09-25';
 let calendarCursor=new Date(selectedDate+'T12:00:00');
-// Corrige somente o conjunto demonstrativo antigo que possuía horários sobrepostos (08:00 e 09:30 no mesmo intervalo).
-if(activeDentistId===CARLA_DENTIST_ID){
-  const legacyDemo=appointments.some(a=>a.name==='Lucas Martins'&&a.date==='2026-09-25'&&a.time==='09:30')&&appointments.some(a=>a.name==='Mariana Souza'&&a.date==='2026-09-25'&&a.time==='08:00');
-  if(legacyDemo){appointments=seedAppointments.map((a,i)=>({...a,id:`demo-${i+1}`}));persistAppointments();}
-}
 function formatDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}
 function timeToMinutes(value){const [h,m]=String(value||'00:00').split(':').map(Number);return (Number.isFinite(h)?h:0)*60+(Number.isFinite(m)?m:0)}
 function getSlotsForDate(date,sourceAvailability=availability){if(!date)return[];const d=new Date(date+'T12:00:00'),cfg=sourceAvailability[d.getDay()];if(!cfg||!cfg.open)return[];return(cfg.slots||[]).map((s,i)=>({...s,index:i,label:`Horário ${i+1} · ${s.start} às ${s.end}`})).sort((a,b)=>timeToMinutes(a.start)-timeToMinutes(b.start))}
@@ -694,7 +693,7 @@ function renderPatientPortal(){
   const snapshotBusy=snap&&Array.isArray(snap.busy)?snap.busy:[];
   const liveBusy=appointments.filter(a=>a.status!=='Cancelado').map(a=>({date:a.date,time:a.time,end:a.end||'',slotStart:a.slotStart||'',slotEnd:a.slotEnd||'',status:a.status}));
   const busyList=[...snapshotBusy,...liveBusy];
-  document.getElementById('publicDentistName').textContent=dentist.name;document.getElementById('publicDentistFooter').textContent=`Rootis · Agendamento com ${dentist.name}`;const root=document.getElementById('publicDays');if(!root)return;const start=new Date();start.setHours(12,0,0,0);if(activeDentistId===CARLA_DENTIST_ID&&!snap){const demo=new Date('2026-09-25T12:00:00');if(start>demo)start.setTime(demo.getTime())}const days=[];
+  document.getElementById('publicDentistName').textContent=dentist.name;document.getElementById('publicDentistFooter').textContent=`Rootis · Agendamento com ${dentist.name}`;const root=document.getElementById('publicDays');if(!root)return;const start=new Date();start.setHours(12,0,0,0);const days=[];
   for(let k=0;k<45;k++){
     const d=new Date(start);d.setDate(start.getDate()+k);const key=dateKey(d),cfg=pubAvailability[d.getDay()];
     if(!cfg||!cfg.open||!(cfg.slots||[]).length)continue;
@@ -791,15 +790,15 @@ function renderPendingAppointmentsModal(){
 function openPendingAppointmentsModal(){renderPendingAppointmentsModal();document.getElementById('pendingAppointmentsModal')?.classList.add('open')}
 function closePendingAppointmentsModal(){document.getElementById('pendingAppointmentsModal')?.classList.remove('open')}
 function revenueGroups(){
-  const groups={};paymentLedger.forEach(e=>{const key=revenueMonthKey(e.date);if(!key||Math.abs(Number(e.amount)||0)<0.005)return;if(!groups[key])groups[key]={key,total:0,count:0,items:[]};groups[key].total+=Number(e.amount)||0;groups[key].count++;groups[key].items.push(e)});return Object.values(groups).sort((a,b)=>b.key.localeCompare(a.key));
+  const groups={};billingLedger.forEach(e=>{const key=revenueMonthKey(e.date);if(!key||Math.abs(Number(e.amount)||0)<0.005)return;if(!groups[key])groups[key]={key,total:0,count:0,items:[]};groups[key].total+=Number(e.amount)||0;groups[key].count++;groups[key].items.push(e)});return Object.values(groups).sort((a,b)=>b.key.localeCompare(a.key));
 }
-function ledgerRecordLabel(e){return e.label||(e.source==='appointment'?'Pagamento de atendimento':'Pagamento registrado')}
+function ledgerRecordLabel(e){return e.label||'Valor faturado registrado'}
 function renderRevenueModal(){
   const mode=document.getElementById('revenueViewMode')?.value||'current',heroLabel=document.getElementById('revenueHeroLabel'),heroValue=document.getElementById('revenueHeroValue'),heroMeta=document.getElementById('revenueHeroMeta'),root=document.getElementById('revenueDetailList');if(!root)return;
-  const records=[...paymentLedger].filter(e=>Math.abs(Number(e.amount)||0)>=0.005).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))),currentKey=currentRevenueMonthKey();
-  const row=e=>`<article class="dashboard-detail-row"><div class="detail-date"><strong>${brDate(e.date)}</strong><span>${escapeHtml(ledgerRecordLabel(e))}</span></div><div class="detail-main"><strong>${escapeHtml(e.patientName||'Paciente')}</strong><small>${e.source==='manual'?'Lançamento manual':e.source==='opening'?'Saldo anterior':'Pagamento confirmado'}</small></div><div class="detail-money ${Number(e.amount)<0?'money-negative':''}">${moneyBR(e.amount)}</div></article>`;
+  const records=[...billingLedger].filter(e=>Math.abs(Number(e.amount)||0)>=0.005).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))),currentKey=currentRevenueMonthKey();
+  const row=e=>`<article class="dashboard-detail-row"><div class="detail-date"><strong>${brDate(e.date)}</strong><span>${escapeHtml(ledgerRecordLabel(e))}</span></div><div class="detail-main"><strong>${escapeHtml(e.patientName||'Paciente')}</strong><small>${e.source==='opening'?'Saldo faturado anterior':'Valor faturado'}</small></div><div class="detail-money ${Number(e.amount)<0?'money-negative':''}">${moneyBR(e.amount)}</div></article>`;
   if(mode==='current'){
-    const items=records.filter(e=>revenueMonthKey(e.date)===currentKey),total=items.reduce((s,e)=>s+(Number(e.amount)||0),0);heroLabel.textContent=`Faturado em ${revenueMonthLabel(currentKey)}`;heroValue.textContent=moneyBR(total);heroMeta.textContent=`${items.length} ${items.length===1?'movimentação registrada':'movimentações registradas'}`;root.innerHTML=items.length?items.map(row).join(''):'<div class="confirmation-empty">Nenhum recebimento registrado neste mês.</div>';
+    const items=records.filter(e=>revenueMonthKey(e.date)===currentKey),total=items.reduce((s,e)=>s+(Number(e.amount)||0),0);heroLabel.textContent=`Faturado em ${revenueMonthLabel(currentKey)}`;heroValue.textContent=moneyBR(total);heroMeta.textContent=`${items.length} ${items.length===1?'movimentação registrada':'movimentações registradas'}`;root.innerHTML=items.length?items.map(row).join(''):'<div class="confirmation-empty">Nenhum faturamento registrado neste mês.</div>';
   }else if(mode==='months'){
     const groups=revenueGroups(),total=groups.reduce((s,g)=>s+g.total,0);heroLabel.textContent='Faturamento por meses';heroValue.textContent=moneyBR(total);heroMeta.textContent=`${groups.length} ${groups.length===1?'mês com faturamento':'meses com faturamento'}`;root.innerHTML=groups.length?groups.map(g=>`<article class="dashboard-detail-row revenue-month-row"><div class="detail-main"><strong>${revenueMonthLabel(g.key)}</strong><small>${g.count} ${g.count===1?'movimentação':'movimentações'}</small></div><div class="detail-money">${moneyBR(g.total)}</div></article>`).join(''):'<div class="confirmation-empty">Ainda não há faturamento registrado.</div>';
   }else{
@@ -998,50 +997,94 @@ bindWhatsappDigitFields();
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'))});
 
 
-// ===== ROOTIS V9 · autenticação local pronta para backend =====
-let pendingRegister=null,pendingRecovery=null;
-function sixDigitCode(){return String(Math.floor(100000+Math.random()*900000))}
+// ===== ROOTIS V10 · autenticação segura via backend =====
+let pendingRegisterRequestId=null,pendingRecoveryRequestId=null;
 function authView(id){document.querySelectorAll('.auth-view').forEach(v=>v.classList.toggle('active',v.id===id));window.scrollTo({top:0,behavior:'smooth'})}
 function maskedDestination(channel,value){const raw=String(value||'');if(channel==='email'){const [u,d]=raw.split('@');return u&&d?`${u.slice(0,2)}***@${d}`:raw}const digits=whatsappFieldValue(raw);return digits.length>=4?`(**) *****-${digits.slice(-4)}`:raw}
-function demoCodeMessage(channel,destination,code){const names={email:'e-mail',whatsapp:'WhatsApp',sms:'SMS'};return `Código preparado para <strong>${names[channel]||channel}</strong> em ${maskedDestination(channel,destination)}.<br><strong>Modo local:</strong> use o código <strong>${code}</strong>. Na publicação, este código será enviado pelo provedor conectado ao Rootis.`}
 function validAuthPhone(v){return /^\d{11}$/.test(whatsappFieldValue(v))}
-function uniqueDentistId(name){const base=String(name||'dentista').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'dentista';let id=base,n=1;while(dentists.some(d=>d.id===id)||authAccounts.some(a=>a.userId===id))id=`${base}-${++n}`;return id}
-function loginAs(account){localStorage.setItem(ROOTIS_SESSION_USER_KEY,account.userId);localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,account.userId);sessionStorage.setItem('rootisOpenPageAfterReload',account.role==='owner'?'administrador':'dashboard');location.reload()}
-function logoutRootis(){localStorage.removeItem(ROOTIS_SESSION_USER_KEY);sessionStorage.removeItem('rootisOpenPageAfterReload');location.reload()}
+async function authApi(path,options={}){
+  const init={method:options.method||'GET',credentials:'include',headers:{'Accept':'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}};
+  if(options.body)init.body=JSON.stringify(options.body);
+  let res;
+  try{res=await fetch(`${ROOTIS_API_BASE}${path}`,init)}catch(error){throw new Error(location.protocol==='file:'?'A autenticação segura depende do servidor do www.rootis.com.br. Este executável local serve apenas para visualizar a interface.':'Não foi possível conectar ao servidor do Rootis.')}
+  let data={};try{data=await res.json()}catch(e){}
+  if(!res.ok)throw new Error(data.error||data.message||'Não foi possível concluir a operação.');
+  return data;
+}
+function syncAuthenticatedDentist(account){
+  if(!account?.userId)return;
+  sessionUserId=account.userId;currentAuthAccount=account;
+  const existing=dentists.find(d=>d.id===account.userId);
+  const base=existing||{id:account.userId,name:account.name||'Dentista',cro:'',specialty:'',clinic:'',whatsapp:'',email:'',pixKey:'',pixReceiver:'',cardPaymentLink:'',createdAt:new Date().toISOString()};
+  const merged={...base,name:account.name||base.name,email:account.email||base.email,whatsapp:whatsappFieldValue(account.phone||base.whatsapp),cro:account.cro||base.cro,specialty:account.specialty||base.specialty,clinic:account.clinic||base.clinic};
+  dentists=existing?dentists.map(d=>d.id===account.userId?merged:d):[...dentists,merged];
+  if(account.role==='owner'&&!dentists.some(d=>d.id===DEFAULT_DENTIST_ID)){dentists.unshift({...defaultDentist,id:DEFAULT_DENTIST_ID})}
+  saveDentists();
+}
+async function hydrateOwnerAssociates(){
+  if(!isPlatformOwner())return;
+  try{
+    const data=await authApi('/admin/users');
+    const serverDentists=Array.isArray(data.users)?data.users.filter(u=>u.role==='dentist'):[];
+    for(const u of serverDentists){
+      const existing=dentists.find(d=>d.id===u.userId);
+      const merged={...(existing||{}),id:u.userId,name:u.name||existing?.name||'Dentista',email:u.email||existing?.email||'',whatsapp:whatsappFieldValue(u.phone||existing?.whatsapp||''),cro:u.cro||existing?.cro||'',specialty:u.specialty||existing?.specialty||'',clinic:u.clinic||existing?.clinic||'',pixKey:existing?.pixKey||'',pixReceiver:existing?.pixReceiver||'',cardPaymentLink:existing?.cardPaymentLink||'',createdAt:existing?.createdAt||u.createdAt||new Date().toISOString()};
+      dentists=existing?dentists.map(d=>d.id===u.userId?merged:d):[...dentists,merged];
+    }
+    saveDentists();
+  }catch(e){console.warn('Não foi possível atualizar associados do servidor.',e)}
+}
+async function secureUpdateAccountProfile(userId,patch){
+  if(!currentAuthAccount)return;
+  const data=await authApi('/account/profile',{method:'POST',body:{userId,name:patch.name,email:patch.email,phone:patch.whatsapp,cro:patch.cro,specialty:patch.specialty,clinic:patch.clinic}});
+  if(data.user?.userId===currentAuthAccount.userId){currentAuthAccount={...currentAuthAccount,...data.user}}
+}
+async function secureDeleteAccount(userId){
+  if(!isPlatformOwner())return;
+  await authApi('/admin/delete-user',{method:'POST',body:{userId}});
+}
+function loginAs(account){currentAuthAccount=account;sessionUserId=account.userId;localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,account.role==='owner'?DEFAULT_DENTIST_ID:account.userId);sessionStorage.setItem('rootisOpenPageAfterReload',account.role==='owner'?'administrador':'dashboard');location.reload()}
+async function logoutRootis(){try{await authApi('/auth/logout',{method:'POST'})}catch(e){}localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,DEFAULT_DENTIST_ID);sessionStorage.removeItem('rootisOpenPageAfterReload');location.reload()}
 function showAuth(){document.body.classList.remove('rootis-authenticated');document.getElementById('authShell')?.removeAttribute('hidden');authView('authLoginView')}
 function hideAuth(){document.getElementById('authShell')?.setAttribute('hidden','');document.body.classList.add('rootis-authenticated')}
-function bindAuthV9(){
+function setAuthBusy(button,busy,label){if(!button)return;button.disabled=busy;if(label)button.dataset.defaultLabel=button.dataset.defaultLabel||button.textContent;button.textContent=busy?(label||'Aguarde...'):(button.dataset.defaultLabel||button.textContent)}
+function bindAuthV10(){
   document.getElementById('openRegister')?.addEventListener('click',()=>authView('authRegisterView'));
   document.getElementById('openRecovery')?.addEventListener('click',()=>authView('authRecoveryView'));
   document.querySelectorAll('[data-auth-login]').forEach(b=>b.addEventListener('click',()=>authView('authLoginView')));
-  document.getElementById('fillDemoDentist')?.addEventListener('click',()=>{const e=document.getElementById('loginEmail'),p=document.getElementById('loginPassword');if(e)e.value=ROOTIS_DEMO_EMAIL;if(p)p.value='Dentista123*';e?.focus()});
-  document.getElementById('loginForm')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target),account=accountByLogin(f.get('email'));if(!account||rootisLocalHash(f.get('password'))!==account.passwordHash){toast('E-mail ou senha incorretos.');return}loginAs(account)});
-  document.getElementById('sendRegisterCode')?.addEventListener('click',()=>{
-    const form=document.getElementById('registerForm'),f=new FormData(form),name=String(f.get('name')||'').trim(),email=String(f.get('email')||'').trim().toLowerCase(),phone=whatsappFieldValue(f.get('phone')),password=String(f.get('password')||''),confirm=String(f.get('passwordConfirm')||''),channel=String(f.get('channel')||'email');
-    if(!name||!email||!phone){toast('Preencha nome, e-mail e celular.');return}if(!validAuthPhone(phone)){toast('Informe um celular com 11 números.');return}if(password.length<6){toast('A senha precisa ter pelo menos 6 caracteres.');return}if(password!==confirm){toast('As senhas não conferem.');return}if(authAccounts.some(a=>String(a.email||'').toLowerCase()===email)){toast('Já existe uma conta com este e-mail.');return}
-    const code=sixDigitCode(),destination=channel==='email'?email:phone;pendingRegister={code,expires:Date.now()+10*60*1000,data:{name,email,phone,cro:String(f.get('cro')||'').trim(),specialty:String(f.get('specialty')||'').trim(),clinic:String(f.get('clinic')||'').trim(),passwordHash:rootisLocalHash(password),channel}};
-    const step=document.getElementById('registerCodeStep'),status=document.getElementById('registerDeliveryStatus');if(step)step.hidden=false;if(status)status.innerHTML=demoCodeMessage(channel,destination,code);document.getElementById('registerCodeInput')?.focus();
+  document.getElementById('loginForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();const button=e.submitter||e.target.querySelector('[type="submit"]'),f=new FormData(e.target);setAuthBusy(button,true,'Entrando...');
+    try{const data=await authApi('/auth/login',{method:'POST',body:{identifier:String(f.get('email')||'').trim(),password:String(f.get('password')||'')}});loginAs(data.user)}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
-  document.getElementById('confirmRegister')?.addEventListener('click',()=>{
-    const code=String(document.getElementById('registerCodeInput')?.value||'').trim();if(!pendingRegister||Date.now()>pendingRegister.expires){toast('O código expirou. Envie um novo código.');return}if(code!==pendingRegister.code){toast('Código de ativação incorreto.');return}
-    const d=pendingRegister.data,id=uniqueDentistId(d.name),dentist={id,name:d.name,cro:d.cro,specialty:d.specialty,clinic:d.clinic,whatsapp:d.phone,email:d.email,pixKey:'',pixReceiver:'',cardPaymentLink:'',createdAt:new Date().toISOString()};dentists.push(dentist);saveDentists();authAccounts.push({userId:id,role:'dentist',name:d.name,email:d.email,phone:d.phone,passwordHash:d.passwordHash,verified:true,createdAt:new Date().toISOString()});saveAuthAccounts();pendingRegister=null;loginAs(authAccounts[authAccounts.length-1]);
+  document.getElementById('sendRegisterCode')?.addEventListener('click',async e=>{
+    const button=e.currentTarget,form=document.getElementById('registerForm'),f=new FormData(form),name=String(f.get('name')||'').trim(),email=String(f.get('email')||'').trim().toLowerCase(),phone=whatsappFieldValue(f.get('phone')),password=String(f.get('password')||''),confirm=String(f.get('passwordConfirm')||''),channel=String(f.get('channel')||'email');
+    if(!name||!email||!phone){toast('Preencha nome, e-mail e celular.');return}if(!validAuthPhone(phone)){toast('Informe um celular com 11 números.');return}if(password.length<8){toast('Use uma senha com pelo menos 8 caracteres.');return}if(password!==confirm){toast('As senhas não conferem.');return}
+    setAuthBusy(button,true,'Enviando...');
+    try{const data=await authApi('/auth/register/request',{method:'POST',body:{name,email,phone,cro:String(f.get('cro')||'').trim(),specialty:String(f.get('specialty')||'').trim(),clinic:String(f.get('clinic')||'').trim(),password,channel}});pendingRegisterRequestId=data.requestId;const step=document.getElementById('registerCodeStep'),status=document.getElementById('registerDeliveryStatus');if(step)step.hidden=false;if(status)status.innerHTML=`Código enviado por <strong>${channel==='email'?'e-mail':channel==='whatsapp'?'WhatsApp':'SMS'}</strong> para ${data.maskedDestination||maskedDestination(channel,channel==='email'?email:phone)}.`;document.getElementById('registerCodeInput')?.focus()}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
-  document.getElementById('sendRecoveryCode')?.addEventListener('click',()=>{
-    const identifier=document.getElementById('recoveryIdentifier')?.value||'',channel=document.getElementById('recoveryChannel')?.value||'email',account=accountByLogin(identifier);if(!account){toast('Conta não encontrada.');return}if(channel==='email'&&!account.email){toast('Essa conta não possui e-mail de recuperação.');return}if(channel==='sms'&&!account.phone){toast('Essa conta não possui celular de recuperação.');return}
-    const code=sixDigitCode(),destination=channel==='email'?account.email:account.phone;pendingRecovery={code,expires:Date.now()+10*60*1000,userId:account.userId};const step=document.getElementById('recoveryCodeStep'),status=document.getElementById('recoveryDeliveryStatus');if(step)step.hidden=false;if(status)status.innerHTML=demoCodeMessage(channel,destination,code);document.getElementById('recoveryCodeInput')?.focus();
+  document.getElementById('confirmRegister')?.addEventListener('click',async e=>{
+    const button=e.currentTarget,code=String(document.getElementById('registerCodeInput')?.value||'').trim();if(!pendingRegisterRequestId){toast('Primeiro solicite o código de ativação.');return}if(!/^\d{6}$/.test(code)){toast('Informe o código de 6 dígitos.');return}setAuthBusy(button,true,'Confirmando...');
+    try{const data=await authApi('/auth/register/verify',{method:'POST',body:{requestId:pendingRegisterRequestId,code}});pendingRegisterRequestId=null;loginAs(data.user)}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
-  document.getElementById('confirmRecovery')?.addEventListener('click',()=>{
-    const code=String(document.getElementById('recoveryCodeInput')?.value||'').trim(),password=String(document.getElementById('recoveryNewPassword')?.value||''),confirm=String(document.getElementById('recoveryNewPasswordConfirm')?.value||'');if(!pendingRecovery||Date.now()>pendingRecovery.expires){toast('O código expirou. Solicite outro.');return}if(code!==pendingRecovery.code){toast('Código de recuperação incorreto.');return}if(password.length<6){toast('A nova senha precisa ter pelo menos 6 caracteres.');return}if(password!==confirm){toast('As novas senhas não conferem.');return}
-    authAccounts=authAccounts.map(a=>a.userId===pendingRecovery.userId?{...a,passwordHash:rootisLocalHash(password),passwordUpdatedAt:new Date().toISOString()}:a);saveAuthAccounts();pendingRecovery=null;toast('Senha atualizada. Entre com a nova senha.');document.getElementById('loginEmail').value=String(document.getElementById('recoveryIdentifier')?.value||'');document.getElementById('loginPassword').value='';authView('authLoginView');
+  document.getElementById('sendRecoveryCode')?.addEventListener('click',async e=>{
+    const button=e.currentTarget,identifier=String(document.getElementById('recoveryIdentifier')?.value||'').trim(),channel=document.getElementById('recoveryChannel')?.value||'email';if(!identifier){toast('Informe seu e-mail ou celular.');return}setAuthBusy(button,true,'Enviando...');
+    try{const data=await authApi('/auth/recovery/request',{method:'POST',body:{identifier,channel}});pendingRecoveryRequestId=data.requestId;const step=document.getElementById('recoveryCodeStep'),status=document.getElementById('recoveryDeliveryStatus');if(step)step.hidden=false;if(status)status.innerHTML=`Código de recuperação enviado para ${data.maskedDestination||'o canal escolhido'}.`;document.getElementById('recoveryCodeInput')?.focus()}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
+  });
+  document.getElementById('confirmRecovery')?.addEventListener('click',async e=>{
+    const button=e.currentTarget,code=String(document.getElementById('recoveryCodeInput')?.value||'').trim(),password=String(document.getElementById('recoveryNewPassword')?.value||''),confirm=String(document.getElementById('recoveryNewPasswordConfirm')?.value||'');if(!pendingRecoveryRequestId){toast('Solicite o código de recuperação.');return}if(!/^\d{6}$/.test(code)){toast('Informe o código de 6 dígitos.');return}if(password.length<8){toast('A nova senha precisa ter pelo menos 8 caracteres.');return}if(password!==confirm){toast('As novas senhas não conferem.');return}setAuthBusy(button,true,'Atualizando...');
+    try{await authApi('/auth/recovery/reset',{method:'POST',body:{requestId:pendingRecoveryRequestId,code,password}});pendingRecoveryRequestId=null;toast('Senha atualizada com segurança. Entre com a nova senha.');document.getElementById('loginEmail').value=String(document.getElementById('recoveryIdentifier')?.value||'');document.getElementById('loginPassword').value='';authView('authLoginView')}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
   document.getElementById('logoutButton')?.addEventListener('click',logoutRootis);
 }
-function startRootisV9(){
-  bindAuthV9();
+async function startRootisV10(){
+  bindAuthV10();
   const patientMode=initPatientMode();
   if(patientMode){document.getElementById('authShell')?.setAttribute('hidden','');document.body.classList.remove('rootis-authenticated');return}
-  const account=accountByUserId(sessionUserId);if(!account){showAuth();return}
-  if(account.role!=='owner'){activeDentistId=account.userId;localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,activeDentistId);if(!dentists.some(d=>d.id===activeDentistId)){localStorage.removeItem(ROOTIS_SESSION_USER_KEY);showAuth();return}}
+  let account=null;try{const data=await authApi('/auth/me');account=data.user||null}catch(e){}
+  if(!account){showAuth();return}
+  syncAuthenticatedDentist(account);await hydrateOwnerAssociates();
+  if(account.role!=='owner'&&activeDentistId!==account.userId){localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,account.userId);location.reload();return}else if(account.role!=='owner'){activeDentistId=account.userId}else if(!dentists.some(d=>d.id===activeDentistId)){activeDentistId=DEFAULT_DENTIST_ID;localStorage.setItem(ROOTIS_ACTIVE_DENTIST_KEY,activeDentistId)}
+  activeDentist=dentists.find(d=>d.id===activeDentistId)||dentists.find(d=>d.id===account.userId)||defaultDentist;
   hideAuth();renderDentistUI();renderDentistCentral();renderToday();renderPatients();renderAvailabilityEditor();renderCalendar();renderAvailable(selectedDate);renderConfirmations();const requested=sessionStorage.getItem('rootisOpenPageAfterReload');if(requested){sessionStorage.removeItem('rootisOpenPageAfterReload');if(titles[requested]&&(requested!=='administrador'||isPlatformOwner()))showPage(requested,{remember:false,scroll:false});}
 }
-startRootisV9();
+startRootisV10();

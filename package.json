@@ -1,0 +1,11 @@
+{
+  "name": "rootis-v10",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "create-admin": "node scripts/create-admin.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}
