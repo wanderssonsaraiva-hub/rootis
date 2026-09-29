@@ -33,7 +33,7 @@
     <div class="auth-view" id="authRegisterView">
       <span class="auth-kicker">NOVO DENTISTA</span>
       <h1>Criar sua conta</h1>
-      <p class="auth-intro">Cadastre seus dados profissionais e confirme sua identidade para começar.</p>
+      <p class="auth-intro">Cadastre seus dados profissionais para começar.</p>
       <form id="registerForm" class="auth-form auth-form-grid">
         <label class="auth-full">Nome profissional<input name="name" placeholder="Ex.: Dra. Ana Souza" required></label>
         <label>E-mail<input name="email" type="email" placeholder="dentista@exemplo.com" required></label>
@@ -41,14 +41,9 @@
         <label>CRO<input name="cro" placeholder="CRO-SP 12345"></label>
         <label>Especialidade<input name="specialty" placeholder="Ex.: Endodontia"></label>
         <label class="auth-full">Clínica / consultório<input name="clinic" placeholder="Nome da clínica"></label>
-        <label>Senha<input name="password" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" required></label>
-        <label>Confirmar senha<input name="passwordConfirm" type="password" minlength="6" placeholder="Digite novamente" required></label>
-        <button class="btn btn-primary auth-main-button auth-full" id="sendRegisterCode" type="button">Enviar código de ativação</button>
-        <div class="auth-code-step auth-full" id="registerCodeStep" hidden>
-          <div class="auth-delivery-status" id="registerDeliveryStatus"></div>
-          <label>Código de 6 dígitos<input id="registerCodeInput" inputmode="numeric" maxlength="6" placeholder="000000"></label>
-          <button class="btn btn-primary" id="confirmRegister" type="button">Confirmar e criar conta</button>
-        </div>
+        <label>Senha<input name="password" type="password" minlength="8" placeholder="Mínimo de 8 caracteres" required></label>
+        <label>Confirmar senha<input name="passwordConfirm" type="password" minlength="8" placeholder="Digite novamente" required></label>
+        <button class="btn btn-primary auth-main-button auth-full" id="registerSubmit" type="submit">Criar conta</button>
       </form>
       <div class="auth-switch">Já tem uma conta? <button class="auth-text-button" data-auth-login type="button">Entrar</button></div>
     </div>

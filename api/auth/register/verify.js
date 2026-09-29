@@ -1,2 +1,6 @@
-import crypto from 'node:crypto';import { db } from '../../_lib/db.js';import { json,bodyJson,method } from '../../_lib/http.js';import { hashOtp,safeEqualHex,slug } from '../../_lib/security.js';import { createSession } from '../../_lib/session.js';
-export default async function handler(req,res){if(!method(req,res,['POST']))return;try{const {requestId,code}=await bodyJson(req),sql=db();const rows=await sql`SELECT * FROM auth_codes WHERE request_id=${requestId} AND purpose='register' AND used_at IS NULL AND expires_at>NOW() LIMIT 1`;const row=rows[0];if(!row||!safeEqualHex(hashOtp(code),row.code_hash))return json(res,400,{error:'Código inválido ou expirado.'});const d=row.payload||{},userId=`${slug(d.name)}-${crypto.randomBytes(4).toString('hex')}`;const users=await sql`INSERT INTO users (user_id,role,name,email,phone,password_hash,verified,cro,specialty,clinic) VALUES (${userId},'dentist',${d.name},${d.email},${d.phone},${d.passwordHash},TRUE,${d.cro||''},${d.specialty||''},${d.clinic||''}) RETURNING user_id AS "userId",role,name,email,phone,cro,specialty,clinic`;await sql`UPDATE auth_codes SET used_at=NOW() WHERE request_id=${requestId}`;await createSession(res,userId);json(res,200,{user:users[0]})}catch(e){console.error(e);json(res,500,{error:'Falha ao confirmar cadastro.'})}}
+import { json,method } from '../../_lib/http.js';
+
+export default async function handler(req,res){
+  if(!method(req,res,['POST']))return;
+  return json(res,410,{error:'O cadastro do Rootis não usa mais código de ativação. Crie a conta diretamente pela tela de cadastro.'});
+}

@@ -87,7 +87,6 @@ A interface poderá abrir, mas o login seguro não funcionará, pois o frontend 
 /api/auth/logout
 /api/auth/me
 /api/auth/register/request
-/api/auth/register/verify
 /api/auth/recovery/request
 /api/auth/recovery/reset
 /api/account/profile

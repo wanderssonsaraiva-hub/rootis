@@ -998,7 +998,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;document.quer
 
 
 // ===== ROOTIS V10 · autenticação segura via backend =====
-let pendingRegisterRequestId=null,pendingRecoveryRequestId=null;
+let pendingRecoveryRequestId=null;
 function authView(id){document.querySelectorAll('.auth-view').forEach(v=>v.classList.toggle('active',v.id===id));window.scrollTo({top:0,behavior:'smooth'})}
 function maskedDestination(channel,value){const raw=String(value||'');if(channel==='email'){const [u,d]=raw.split('@');return u&&d?`${u.slice(0,2)}***@${d}`:raw}const digits=whatsappFieldValue(raw);return digits.length>=4?`(**) *****-${digits.slice(-4)}`:raw}
 function validAuthPhone(v){return /^\d{11}$/.test(whatsappFieldValue(v))}
@@ -1056,15 +1056,12 @@ function bindAuthV10(){
     e.preventDefault();const button=e.submitter||e.target.querySelector('[type="submit"]'),f=new FormData(e.target);setAuthBusy(button,true,'Entrando...');
     try{const data=await authApi('/auth/login',{method:'POST',body:{identifier:String(f.get('email')||'').trim(),password:String(f.get('password')||'')}});loginAs(data.user)}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
-  document.getElementById('sendRegisterCode')?.addEventListener('click',async e=>{
-    const button=e.currentTarget,form=document.getElementById('registerForm'),f=new FormData(form),name=String(f.get('name')||'').trim(),email=String(f.get('email')||'').trim().toLowerCase(),phone=whatsappFieldValue(f.get('phone')),password=String(f.get('password')||''),confirm=String(f.get('passwordConfirm')||''),channel='email';
+  document.getElementById('registerForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const button=e.submitter||document.getElementById('registerSubmit'),f=new FormData(e.target),name=String(f.get('name')||'').trim(),email=String(f.get('email')||'').trim().toLowerCase(),phone=whatsappFieldValue(f.get('phone')),password=String(f.get('password')||''),confirm=String(f.get('passwordConfirm')||'');
     if(!name||!email||!phone){toast('Preencha nome, e-mail e celular.');return}if(!validAuthPhone(phone)){toast('Informe um celular com 11 números.');return}if(password.length<8){toast('Use uma senha com pelo menos 8 caracteres.');return}if(password!==confirm){toast('As senhas não conferem.');return}
-    setAuthBusy(button,true,'Enviando...');
-    try{const data=await authApi('/auth/register/request',{method:'POST',body:{name,email,phone,cro:String(f.get('cro')||'').trim(),specialty:String(f.get('specialty')||'').trim(),clinic:String(f.get('clinic')||'').trim(),password,channel}});pendingRegisterRequestId=data.requestId;const step=document.getElementById('registerCodeStep'),status=document.getElementById('registerDeliveryStatus');if(step)step.hidden=false;if(status)status.innerHTML=`Código de ativação enviado por <strong>e-mail</strong> para ${data.maskedDestination||maskedDestination('email',email)}.`;document.getElementById('registerCodeInput')?.focus()}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
-  });
-  document.getElementById('confirmRegister')?.addEventListener('click',async e=>{
-    const button=e.currentTarget,code=String(document.getElementById('registerCodeInput')?.value||'').trim();if(!pendingRegisterRequestId){toast('Primeiro solicite o código de ativação.');return}if(!/^\d{6}$/.test(code)){toast('Informe o código de 6 dígitos.');return}setAuthBusy(button,true,'Confirmando...');
-    try{const data=await authApi('/auth/register/verify',{method:'POST',body:{requestId:pendingRegisterRequestId,code}});pendingRegisterRequestId=null;loginAs(data.user)}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
+    setAuthBusy(button,true,'Criando conta...');
+    try{const data=await authApi('/auth/register/request',{method:'POST',body:{name,email,phone,cro:String(f.get('cro')||'').trim(),specialty:String(f.get('specialty')||'').trim(),clinic:String(f.get('clinic')||'').trim(),password}});loginAs(data.user)}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
   document.getElementById('sendRecoveryCode')?.addEventListener('click',async e=>{
     const button=e.currentTarget,identifier=String(document.getElementById('recoveryIdentifier')?.value||'').trim(),channel=document.getElementById('recoveryChannel')?.value||'email';if(!identifier){toast('Informe seu e-mail ou celular.');return}setAuthBusy(button,true,'Enviando...');
