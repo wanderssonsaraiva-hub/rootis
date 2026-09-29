@@ -998,9 +998,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;document.quer
 
 
 // ===== ROOTIS V10 · autenticação segura via backend =====
-let pendingRecoveryRequestId=null;
 function authView(id){document.querySelectorAll('.auth-view').forEach(v=>v.classList.toggle('active',v.id===id));window.scrollTo({top:0,behavior:'smooth'})}
-function maskedDestination(channel,value){const raw=String(value||'');if(channel==='email'){const [u,d]=raw.split('@');return u&&d?`${u.slice(0,2)}***@${d}`:raw}const digits=whatsappFieldValue(raw);return digits.length>=4?`(**) *****-${digits.slice(-4)}`:raw}
 function validAuthPhone(v){return /^\d{11}$/.test(whatsappFieldValue(v))}
 async function authApi(path,options={}){
   const init={method:options.method||'GET',credentials:'include',headers:{'Accept':'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}};
@@ -1050,7 +1048,6 @@ function hideAuth(){document.getElementById('authShell')?.setAttribute('hidden',
 function setAuthBusy(button,busy,label){if(!button)return;button.disabled=busy;if(label)button.dataset.defaultLabel=button.dataset.defaultLabel||button.textContent;button.textContent=busy?(label||'Aguarde...'):(button.dataset.defaultLabel||button.textContent)}
 function bindAuthV10(){
   document.getElementById('openRegister')?.addEventListener('click',()=>authView('authRegisterView'));
-  document.getElementById('openRecovery')?.addEventListener('click',()=>authView('authRecoveryView'));
   document.querySelectorAll('[data-auth-login]').forEach(b=>b.addEventListener('click',()=>authView('authLoginView')));
   document.getElementById('loginForm')?.addEventListener('submit',async e=>{
     e.preventDefault();const button=e.submitter||e.target.querySelector('[type="submit"]'),f=new FormData(e.target);setAuthBusy(button,true,'Entrando...');
@@ -1062,14 +1059,6 @@ function bindAuthV10(){
     if(!name||!email||!phone){toast('Preencha nome, e-mail e celular.');return}if(!validAuthPhone(phone)){toast('Informe um celular com 11 números.');return}if(password.length<8){toast('Use uma senha com pelo menos 8 caracteres.');return}if(password!==confirm){toast('As senhas não conferem.');return}
     setAuthBusy(button,true,'Criando conta...');
     try{const data=await authApi('/auth/register/request',{method:'POST',body:{name,email,phone,cro:String(f.get('cro')||'').trim(),specialty:String(f.get('specialty')||'').trim(),clinic:String(f.get('clinic')||'').trim(),password}});loginAs(data.user)}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
-  });
-  document.getElementById('sendRecoveryCode')?.addEventListener('click',async e=>{
-    const button=e.currentTarget,identifier=String(document.getElementById('recoveryIdentifier')?.value||'').trim(),channel=document.getElementById('recoveryChannel')?.value||'email';if(!identifier){toast('Informe seu e-mail ou celular.');return}setAuthBusy(button,true,'Enviando...');
-    try{const data=await authApi('/auth/recovery/request',{method:'POST',body:{identifier,channel}});pendingRecoveryRequestId=data.requestId;const step=document.getElementById('recoveryCodeStep'),status=document.getElementById('recoveryDeliveryStatus');if(step)step.hidden=false;if(status)status.innerHTML=`Código de recuperação enviado para ${data.maskedDestination||'o canal escolhido'}.`;document.getElementById('recoveryCodeInput')?.focus()}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
-  });
-  document.getElementById('confirmRecovery')?.addEventListener('click',async e=>{
-    const button=e.currentTarget,code=String(document.getElementById('recoveryCodeInput')?.value||'').trim(),password=String(document.getElementById('recoveryNewPassword')?.value||''),confirm=String(document.getElementById('recoveryNewPasswordConfirm')?.value||'');if(!pendingRecoveryRequestId){toast('Solicite o código de recuperação.');return}if(!/^\d{6}$/.test(code)){toast('Informe o código de 6 dígitos.');return}if(password.length<8){toast('A nova senha precisa ter pelo menos 8 caracteres.');return}if(password!==confirm){toast('As novas senhas não conferem.');return}setAuthBusy(button,true,'Atualizando...');
-    try{await authApi('/auth/recovery/reset',{method:'POST',body:{requestId:pendingRecoveryRequestId,code,password}});pendingRecoveryRequestId=null;toast('Senha atualizada com segurança. Entre com a nova senha.');document.getElementById('loginEmail').value=String(document.getElementById('recoveryIdentifier')?.value||'');document.getElementById('loginPassword').value='';authView('authLoginView')}catch(err){toast(err.message)}finally{setAuthBusy(button,false)}
   });
   document.getElementById('logoutButton')?.addEventListener('click',logoutRootis);
 }

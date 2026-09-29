@@ -24,7 +24,6 @@
       <form id="loginForm" class="auth-form">
         <label>E-mail<input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="seu@email.com" required></label>
         <label>Senha<input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" required></label>
-        <button class="auth-text-button auth-forgot-link" id="openRecovery" type="button">Esqueci minha senha</button>
         <button class="btn btn-primary auth-main-button" type="submit">Entrar</button>
       </form>
       <div class="auth-switch">Não tem uma conta? <button class="auth-text-button" id="openRegister" type="button">Criar conta</button></div>
@@ -48,24 +47,6 @@
       <div class="auth-switch">Já tem uma conta? <button class="auth-text-button" data-auth-login type="button">Entrar</button></div>
     </div>
 
-    <div class="auth-view" id="authRecoveryView">
-      <span class="auth-kicker">RECUPERAÇÃO</span>
-      <h1>Recuperar acesso</h1>
-      <p class="auth-intro">Localize sua conta e receba um código por e-mail ou SMS para definir uma nova senha.</p>
-      <form id="recoveryForm" class="auth-form">
-        <label>E-mail ou celular<input id="recoveryIdentifier" placeholder="seu@email.com ou 11999999999" required></label>
-        <label>Receber código por<select id="recoveryChannel"><option value="email">E-mail</option><option value="sms">SMS</option></select></label>
-        <button class="btn btn-primary auth-main-button" id="sendRecoveryCode" type="button">Enviar código de recuperação</button>
-        <div class="auth-code-step" id="recoveryCodeStep" hidden>
-          <div class="auth-delivery-status" id="recoveryDeliveryStatus"></div>
-          <label>Código de 6 dígitos<input id="recoveryCodeInput" inputmode="numeric" maxlength="6" placeholder="000000"></label>
-          <label>Nova senha<input id="recoveryNewPassword" type="password" minlength="6" placeholder="Nova senha"></label>
-          <label>Confirmar nova senha<input id="recoveryNewPasswordConfirm" type="password" minlength="6" placeholder="Digite novamente"></label>
-          <button class="btn btn-primary" id="confirmRecovery" type="button">Atualizar senha</button>
-        </div>
-      </form>
-      <div class="auth-switch"><button class="auth-text-button" data-auth-login type="button">← Voltar para entrar</button></div>
-    </div>
     <div class="auth-footer">www.rootis.com.br</div>
   </div>
 </section>

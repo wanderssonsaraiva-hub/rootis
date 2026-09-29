@@ -1,2 +1,6 @@
-import { db } from '../../_lib/db.js';import { json,bodyJson,method } from '../../_lib/http.js';import { normalizeEmail,normalizePhone,randomCode,hashOtp,masked } from '../../_lib/security.js';import { sendOtp } from '../../_lib/otp.js';
-export default async function handler(req,res){if(!method(req,res,['POST']))return;try{const b=await bodyJson(req),raw=String(b.identifier||'').trim(),channel=String(b.channel||'email');if(!['email','sms'].includes(channel))return json(res,400,{error:'Canal de recuperação inválido.'});const sql=db(),email=normalizeEmail(raw),phone=normalizePhone(raw),rows=await sql`SELECT user_id,email,phone FROM users WHERE lower(email)=${email} OR phone=${phone||'__'} LIMIT 1`;const user=rows[0];if(!user)return json(res,404,{error:'Conta não encontrada.'});const destination=channel==='email'?user.email:user.phone;if(!destination)return json(res,400,{error:'Canal de recuperação indisponível nesta conta.'});const code=randomCode(),insert=await sql`INSERT INTO auth_codes (purpose,user_id,destination,channel,code_hash,expires_at) VALUES ('recovery',${user.user_id},${destination},${channel},${hashOtp(code)},NOW()+INTERVAL '10 minutes') RETURNING request_id AS "requestId"`;const sent=await sendOtp(channel,destination,code);json(res,200,{requestId:insert[0].requestId,maskedDestination:masked(channel,destination),...(sent.devCode?{devCode:sent.devCode}:{})})}catch(e){console.error(e);json(res,500,{error:e.message||'Falha ao enviar código de recuperação.'})}}
+import { json,method } from '../../_lib/http.js';
+
+export default async function handler(req,res){
+  if(!method(req,res,['POST']))return;
+  return json(res,410,{error:'A recuperação de senha está temporariamente desativada no Rootis.'});
+}

@@ -9,9 +9,8 @@ Esta versão remove credenciais administrativas, hashes de senha e contas do `sc
 
 ## O que fica no servidor/Vercel
 - `DATABASE_URL` do Neon.
-- Códigos temporários de ativação/recuperação.
 - O cadastro cria a conta diretamente, sem código de ativação por e-mail, SMS ou WhatsApp.
-- Códigos temporários permanecem apenas para recuperação de senha, quando esse recurso estiver configurado.
+- Recuperação de senha está temporariamente desativada nesta versão.
 - Senhas armazenadas apenas como hash `scrypt` com salt individual.
 - Sessões armazenadas por hash no Neon.
 
@@ -20,7 +19,7 @@ Esta versão remove credenciais administrativas, hashes de senha e contas do `sc
 2. Configure as variáveis de ambiente usando `.env.example` como referência.
 3. Instale dependências: `npm install`.
 4. Crie a conta proprietária com variáveis de ambiente e `npm run create-admin`.
-5. Configure Resend/Twilio somente se quiser usar recuperação de senha por e-mail/SMS.
+5. Resend/Twilio não são necessários nesta versão porque a recuperação de senha está desativada.
 6. Nunca suba `.env`, `.env.local` ou credenciais para o GitHub.
 
 O arquivo `Rootis_executavelV10.html` serve para visualizar a interface. Login seguro requer as rotas `/api` em execução no Vercel (ou ambiente local equivalente).

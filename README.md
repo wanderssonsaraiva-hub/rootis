@@ -87,8 +87,6 @@ A interface poderá abrir, mas o login seguro não funcionará, pois o frontend 
 /api/auth/logout
 /api/auth/me
 /api/auth/register/request
-/api/auth/recovery/request
-/api/auth/recovery/reset
 /api/account/profile
 /api/admin/users
 /api/admin/delete-user
@@ -756,7 +754,7 @@ Siga exatamente esta ordem:
 4. Executar db/schema.sql do Rootis
 5. Criar projeto no Vercel a partir do GitHub
 6. Conectar Neon ao Vercel
-7. Configurar DATABASE_URL e demais variáveis
+7. Configurar DATABASE_URL
 8. Criar administrador com create-admin.mjs
 9. Fazer Redeploy
 10. Testar login no endereço .vercel.app
@@ -806,3 +804,8 @@ Produção planejada:
 https://www.rootis.com.br
 ```
 
+
+
+## Estado atual da recuperação de senha
+
+A opção **Esqueci minha senha** está temporariamente removida da interface e as rotas `/api/auth/recovery/*` retornam recurso desativado. O recurso poderá ser reimplementado futuramente sem bloquear a publicação atual.

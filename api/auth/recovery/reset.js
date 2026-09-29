@@ -1,2 +1,6 @@
-import { db } from '../../_lib/db.js';import { json,bodyJson,method } from '../../_lib/http.js';import { hashOtp,safeEqualHex,hashPassword } from '../../_lib/security.js';
-export default async function handler(req,res){if(!method(req,res,['POST']))return;try{const {requestId,code,password}=await bodyJson(req);if(String(password||'').length<8)return json(res,400,{error:'Use uma senha com pelo menos 8 caracteres.'});const sql=db(),rows=await sql`SELECT * FROM auth_codes WHERE request_id=${requestId} AND purpose='recovery' AND used_at IS NULL AND expires_at>NOW() LIMIT 1`,row=rows[0];if(!row||!safeEqualHex(hashOtp(code),row.code_hash))return json(res,400,{error:'Código inválido ou expirado.'});await sql`UPDATE users SET password_hash=${hashPassword(password)},updated_at=NOW() WHERE user_id=${row.user_id}`;await sql`UPDATE auth_codes SET used_at=NOW() WHERE request_id=${requestId}`;await sql`DELETE FROM sessions WHERE user_id=${row.user_id}`;json(res,200,{ok:true})}catch(e){console.error(e);json(res,500,{error:'Falha ao redefinir senha.'})}}
+import { json,method } from '../../_lib/http.js';
+
+export default async function handler(req,res){
+  if(!method(req,res,['POST']))return;
+  return json(res,410,{error:'A recuperação de senha está temporariamente desativada no Rootis.'});
+}
